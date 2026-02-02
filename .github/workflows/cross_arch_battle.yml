@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: cross-arch-${{ github.ref }}
   cancel-in-progress: true
 
 env:
