@@ -28,29 +28,23 @@ stateDiagram-v2
     Storm --> Calm : entropy subsides
     PreStorm --> Calm : false alarm
 
-    state Calm {
-        note right of Calm
-            TWT Sleep: 4h intervals
-            Gossip: utility-gated
-            Energy: recharging
-        end note
-    }
+    note right of Calm
+        TWT Sleep: 4h intervals
+        Gossip: utility-gated
+        Energy: recharging
+    end note
 
-    state PreStorm {
-        note right of PreStorm
-            TWT Sleep: 10min intervals
-            Gossip: broadcast if energy > 30%
-            Sentinel: emergency wake ready
-        end note
-    }
+    note right of PreStorm
+        TWT Sleep: 10min intervals
+        Gossip: broadcast if energy > 30%
+        Sentinel: emergency wake ready
+    end note
 
-    state Storm {
-        note right of Storm
-            TWT Sleep: 30s intervals
-            Gossip: full coordination
-            Adaptation: aggressive (LR 0.2)
-        end note
-    }
+    note right of Storm
+        TWT Sleep: 30s intervals
+        Gossip: full coordination
+        Adaptation: aggressive (LR 0.2)
+    end note
 ```
 
 | Pillar | Mechanism | Result |
