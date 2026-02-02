@@ -377,9 +377,7 @@ impl TWTScheduler {
         let interval = match &role {
             NodeRole::Sentinel => 0, // Never sleeps
             NodeRole::OnDemand => 0, // Sleeps indefinitely until woken
-            NodeRole::Scheduled(cfg) => {
-                calculate_weighted_interval(cfg.base_interval_ms, rep)
-            }
+            NodeRole::Scheduled(cfg) => calculate_weighted_interval(cfg.base_interval_ms, rep),
         };
 
         let max_batch = match &role {
@@ -958,7 +956,12 @@ mod tests {
 
         let actual = radio.energy_consumed_mwh();
         // 1h awake (230mWh) + 3h sleep (35mW * 3 = 105mWh) = ~335mWh
-        assert!(actual < baseline * 0.5, "actual={}, baseline={}", actual, baseline);
+        assert!(
+            actual < baseline * 0.5,
+            "actual={}, baseline={}",
+            actual,
+            baseline
+        );
     }
 
     #[test]
@@ -972,12 +975,20 @@ mod tests {
 
         // Simulate: awake briefly, then sleep for most of the time
         sched.mock_radio.wake(0);
-        sched.mock_radio.sleep(100);  // Awake for 100ms
-        // Sleep for ~10 seconds
+        sched.mock_radio.sleep(100); // Awake for 100ms
+                                     // Sleep for ~10 seconds
 
         let metrics = sched.get_metrics(10_000);
-        assert!(metrics.radio_sleep_ratio > 0.9, "sleep_ratio = {}", metrics.radio_sleep_ratio);
-        assert!(metrics.savings_percent > 0.0, "savings = {}", metrics.savings_percent);
+        assert!(
+            metrics.radio_sleep_ratio > 0.9,
+            "sleep_ratio = {}",
+            metrics.radio_sleep_ratio
+        );
+        assert!(
+            metrics.savings_percent > 0.0,
+            "savings = {}",
+            metrics.savings_percent
+        );
     }
 
     // ---- Regime Transition Integration Test ----
@@ -1061,7 +1072,10 @@ mod tests {
 
         // Not all the same
         let first = values[0];
-        assert!(values.iter().any(|&v| v != first), "Jitter should produce variation");
+        assert!(
+            values.iter().any(|&v| v != first),
+            "Jitter should produce variation"
+        );
     }
 
     // ---- Reputation-Weighted Interval Tests ----
@@ -1069,8 +1083,14 @@ mod tests {
     #[test]
     fn test_weighted_interval_full_reputation() {
         // rep=1.0 → full base interval
-        assert_eq!(calculate_weighted_interval(CALM_INTERVAL_MS, 1.0), CALM_INTERVAL_MS);
-        assert_eq!(calculate_weighted_interval(STORM_INTERVAL_MS, 1.0), STORM_INTERVAL_MS);
+        assert_eq!(
+            calculate_weighted_interval(CALM_INTERVAL_MS, 1.0),
+            CALM_INTERVAL_MS
+        );
+        assert_eq!(
+            calculate_weighted_interval(STORM_INTERVAL_MS, 1.0),
+            STORM_INTERVAL_MS
+        );
     }
 
     #[test]
@@ -1079,8 +1099,12 @@ mod tests {
         let expected = CALM_INTERVAL_MS / 5;
         let actual = calculate_weighted_interval(CALM_INTERVAL_MS, 0.0);
         // Allow ±1ms for rounding
-        assert!((actual as i64 - expected as i64).unsigned_abs() <= 1,
-            "rep=0.0: expected ~{}, got {}", expected, actual);
+        assert!(
+            (actual as i64 - expected as i64).unsigned_abs() <= 1,
+            "rep=0.0: expected ~{}, got {}",
+            expected,
+            actual
+        );
     }
 
     #[test]
@@ -1097,13 +1121,17 @@ mod tests {
         // Higher reputation → longer interval (more sleep)
         let base = CALM_INTERVAL_MS;
         let reps = [0.0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9, 1.0];
-        let intervals: Vec<u64> = reps.iter()
+        let intervals: Vec<u64> = reps
+            .iter()
             .map(|&r| calculate_weighted_interval(base, r))
             .collect();
 
         for i in 1..intervals.len() {
-            assert!(intervals[i] >= intervals[i - 1],
-                "Intervals should be monotonically increasing with reputation: {:?}", intervals);
+            assert!(
+                intervals[i] >= intervals[i - 1],
+                "Intervals should be monotonically increasing with reputation: {:?}",
+                intervals
+            );
         }
     }
 
@@ -1111,9 +1139,15 @@ mod tests {
     fn test_weighted_interval_clamps_out_of_range() {
         let base = 10_000u64;
         // Reputation > 1.0 should clamp to 1.0
-        assert_eq!(calculate_weighted_interval(base, 5.0), calculate_weighted_interval(base, 1.0));
+        assert_eq!(
+            calculate_weighted_interval(base, 5.0),
+            calculate_weighted_interval(base, 1.0)
+        );
         // Reputation < 0.0 should clamp to 0.0
-        assert_eq!(calculate_weighted_interval(base, -1.0), calculate_weighted_interval(base, 0.0));
+        assert_eq!(
+            calculate_weighted_interval(base, -1.0),
+            calculate_weighted_interval(base, 0.0)
+        );
     }
 
     #[test]

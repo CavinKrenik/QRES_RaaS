@@ -50,14 +50,14 @@ fn test_24h_swarm_simulation() {
     // Create swarm: 1 Sentinel, 2 OnDemand, 7 Scheduled
     let scheduled_cfg = TWTConfig {
         base_interval_ms: 4 * MS_PER_HOUR, // Start with Calm interval
-        jitter_enabled: false,              // Deterministic for testing
+        jitter_enabled: false,             // Deterministic for testing
         max_batch_size: 128,
     };
 
     let mut nodes: Vec<TWTScheduler> = Vec::new();
-    nodes.push(TWTScheduler::new_sentinel());                        // Node 0: Sentinel
-    nodes.push(TWTScheduler::new_on_demand());                       // Node 1: OnDemand
-    nodes.push(TWTScheduler::new_on_demand());                       // Node 2: OnDemand
+    nodes.push(TWTScheduler::new_sentinel()); // Node 0: Sentinel
+    nodes.push(TWTScheduler::new_on_demand()); // Node 1: OnDemand
+    nodes.push(TWTScheduler::new_on_demand()); // Node 2: OnDemand
     for _ in 0..7 {
         nodes.push(TWTScheduler::new(NodeRole::Scheduled(scheduled_cfg))); // Nodes 3-9
     }
@@ -179,21 +179,38 @@ fn test_24h_swarm_simulation() {
 
     println!("\nOnDemand nodes:");
     for (i, m) in on_demand_metrics.iter().enumerate() {
-        println!("  Node {}: sleep={:.1}%, energy={:.2}mWh, savings={:.1}%",
-            i, m.radio_sleep_ratio * 100.0, m.energy_consumed_mwh, m.savings_percent);
+        println!(
+            "  Node {}: sleep={:.1}%, energy={:.2}mWh, savings={:.1}%",
+            i,
+            m.radio_sleep_ratio * 100.0,
+            m.energy_consumed_mwh,
+            m.savings_percent
+        );
     }
 
     println!("\nScheduled nodes (avg):");
-    let avg_sleep = scheduled_metrics.iter().map(|m| m.radio_sleep_ratio).sum::<f32>()
+    let avg_sleep = scheduled_metrics
+        .iter()
+        .map(|m| m.radio_sleep_ratio)
+        .sum::<f32>()
         / scheduled_metrics.len() as f32;
-    let avg_savings = scheduled_metrics.iter().map(|m| m.savings_percent).sum::<f32>()
+    let avg_savings = scheduled_metrics
+        .iter()
+        .map(|m| m.savings_percent)
+        .sum::<f32>()
         / scheduled_metrics.len() as f32;
-    let avg_energy = scheduled_metrics.iter().map(|m| m.energy_consumed_mwh).sum::<f64>()
+    let avg_energy = scheduled_metrics
+        .iter()
+        .map(|m| m.energy_consumed_mwh)
+        .sum::<f64>()
         / scheduled_metrics.len() as f64;
     println!("  Avg sleep ratio: {:.1}%", avg_sleep * 100.0);
     println!("  Avg energy: {:.2} mWh", avg_energy);
     println!("  Avg savings vs always-on: {:.1}%", avg_savings);
-    println!("  Baseline (always-on 24h): {:.2} mWh", scheduled_metrics[0].baseline_energy_mwh);
+    println!(
+        "  Baseline (always-on 24h): {:.2} mWh",
+        scheduled_metrics[0].baseline_energy_mwh
+    );
 }
 
 /// Test that emergency wake (Sentinel broadcast) reaches OnDemand nodes
@@ -208,9 +225,9 @@ fn test_emergency_wake_response_time() {
 
     // Put OnDemand to sleep manually (simulating it went to sleep in Calm)
     on_demand.mock_radio().is_awake(); // Currently awake from init
-    // Force the OnDemand node into sleep via regime cycling
-    // OnDemand goes to sleep when Calm and no emergency
-    // We'll manually use the emergency_wake path
+                                       // Force the OnDemand node into sleep via regime cycling
+                                       // OnDemand goes to sleep when Calm and no emergency
+                                       // We'll manually use the emergency_wake path
 
     // Sentinel detects storm at T=1000ms
     sentinel.update_regime(Regime::Storm, 1000);
@@ -262,7 +279,10 @@ fn test_regime_cycle_interval_correctness() {
 
     // Verify transitions occurred (sleep→wake on PreStorm = 2 transitions)
     let metrics = sched.get_metrics(5000);
-    assert!(metrics.transition_count > 0, "Should have radio transitions");
+    assert!(
+        metrics.transition_count > 0,
+        "Should have radio transitions"
+    );
 }
 
 // =============================================================================
@@ -306,7 +326,10 @@ fn test_reputation_weighted_sleep_staggering() {
         assert!(
             intervals[i] > intervals[i - 1],
             "Interval should increase with reputation: node[{}]={} <= node[{}]={}",
-            i, intervals[i], i - 1, intervals[i - 1]
+            i,
+            intervals[i],
+            i - 1,
+            intervals[i - 1]
         );
     }
 
@@ -314,7 +337,8 @@ fn test_reputation_weighted_sleep_staggering() {
     assert!(
         intervals[0] < intervals[9] / 2,
         "Low-rep interval ({}) should be less than half of high-rep ({})",
-        intervals[0], intervals[9]
+        intervals[0],
+        intervals[9]
     );
 
     // Verify against the formula directly
@@ -322,7 +346,8 @@ fn test_reputation_weighted_sleep_staggering() {
         let expected = calculate_weighted_interval(cfg.base_interval_ms, rep);
         assert_eq!(
             intervals[i], expected,
-            "Node {} (rep={}) interval mismatch", i, rep
+            "Node {} (rep={}) interval mismatch",
+            i, rep
         );
     }
 
@@ -368,11 +393,14 @@ fn test_reputation_weighted_sleep_staggering() {
         .collect();
 
     println!("\n=== Reputation-Weighted Staggering Results (1h Calm) ===");
-    println!("{:<6} {:<10} {:<12} {:<12} {:<10} {:<10}",
-        "Rep", "Interval", "Sleep%", "Energy(mWh)", "Batched", "Savings%");
+    println!(
+        "{:<6} {:<10} {:<12} {:<12} {:<10} {:<10}",
+        "Rep", "Interval", "Sleep%", "Energy(mWh)", "Batched", "Savings%"
+    );
 
     for (i, m) in metrics.iter().enumerate() {
-        println!("{:<6.1} {:<10} {:<12.1} {:<12.2} {:<10} {:<10.1}",
+        println!(
+            "{:<6.1} {:<10} {:<12.1} {:<12.2} {:<10} {:<10.1}",
             reputations[i],
             intervals[i] / 1000, // seconds
             m.radio_sleep_ratio * 100.0,
@@ -385,31 +413,41 @@ fn test_reputation_weighted_sleep_staggering() {
     // ---- 4. Assertions ----
 
     // High-reputation nodes (rep >= 0.8) should sleep more than low-rep (rep <= 0.3)
-    let high_rep_avg_sleep = metrics[7..].iter()
+    let high_rep_avg_sleep = metrics[7..]
+        .iter()
         .map(|m| m.radio_sleep_ratio)
-        .sum::<f32>() / 3.0;
-    let low_rep_avg_sleep = metrics[..3].iter()
+        .sum::<f32>()
+        / 3.0;
+    let low_rep_avg_sleep = metrics[..3]
+        .iter()
         .map(|m| m.radio_sleep_ratio)
-        .sum::<f32>() / 3.0;
+        .sum::<f32>()
+        / 3.0;
 
     assert!(
         high_rep_avg_sleep > low_rep_avg_sleep,
         "High-rep nodes should sleep more ({:.1}%) than low-rep ({:.1}%)",
-        high_rep_avg_sleep * 100.0, low_rep_avg_sleep * 100.0
+        high_rep_avg_sleep * 100.0,
+        low_rep_avg_sleep * 100.0
     );
 
     // High-reputation nodes should consume less energy
-    let high_rep_avg_energy = metrics[7..].iter()
+    let high_rep_avg_energy = metrics[7..]
+        .iter()
         .map(|m| m.energy_consumed_mwh)
-        .sum::<f64>() / 3.0;
-    let low_rep_avg_energy = metrics[..3].iter()
+        .sum::<f64>()
+        / 3.0;
+    let low_rep_avg_energy = metrics[..3]
+        .iter()
         .map(|m| m.energy_consumed_mwh)
-        .sum::<f64>() / 3.0;
+        .sum::<f64>()
+        / 3.0;
 
     assert!(
         high_rep_avg_energy < low_rep_avg_energy,
         "High-rep nodes should use less energy ({:.2}mWh) than low-rep ({:.2}mWh)",
-        high_rep_avg_energy, low_rep_avg_energy
+        high_rep_avg_energy,
+        low_rep_avg_energy
     );
 
     // Low-reputation nodes should batch more messages (they're asleep less,
@@ -426,22 +464,21 @@ fn test_reputation_weighted_sleep_staggering() {
         assert!(
             m.savings_percent > 0.0,
             "Node {} (rep={}) should have positive savings, got {:.1}%",
-            i, reputations[i], m.savings_percent
+            i,
+            reputations[i],
+            m.savings_percent
         );
     }
 
     // High-rep nodes should have better savings percentage
-    let high_rep_avg_savings = metrics[7..].iter()
-        .map(|m| m.savings_percent)
-        .sum::<f32>() / 3.0;
-    let low_rep_avg_savings = metrics[..3].iter()
-        .map(|m| m.savings_percent)
-        .sum::<f32>() / 3.0;
+    let high_rep_avg_savings = metrics[7..].iter().map(|m| m.savings_percent).sum::<f32>() / 3.0;
+    let low_rep_avg_savings = metrics[..3].iter().map(|m| m.savings_percent).sum::<f32>() / 3.0;
 
     assert!(
         high_rep_avg_savings > low_rep_avg_savings,
         "High-rep nodes should save more ({:.1}%) than low-rep ({:.1}%)",
-        high_rep_avg_savings, low_rep_avg_savings
+        high_rep_avg_savings,
+        low_rep_avg_savings
     );
 }
 
@@ -463,7 +500,10 @@ fn test_reputation_preserved_across_regime_changes() {
     let calm_base = regime_to_interval_ms(Regime::Calm);
     let low_calm = calculate_weighted_interval(calm_base, 0.2);
     let high_calm = calculate_weighted_interval(calm_base, 0.9);
-    assert_ne!(low_rep.current_interval_ms(), high_rep.current_interval_ms());
+    assert_ne!(
+        low_rep.current_interval_ms(),
+        high_rep.current_interval_ms()
+    );
 
     // Put both to sleep
     low_rep.tick(600);
@@ -532,11 +572,16 @@ fn test_dynamic_reputation_change_mid_simulation() {
     assert!(
         new_interval > initial_interval,
         "Higher rep should yield longer interval: {} > {}",
-        new_interval, initial_interval
+        new_interval,
+        initial_interval
     );
 
     // Messages should still be queued
-    assert_eq!(sched.drain_batch().len(), 3, "Queued messages preserved after rep change");
+    assert_eq!(
+        sched.drain_batch().len(),
+        3,
+        "Queued messages preserved after rep change"
+    );
 
     // Verify the math
     let expected = calculate_weighted_interval(regime_to_interval_ms(Regime::Calm), 0.8);

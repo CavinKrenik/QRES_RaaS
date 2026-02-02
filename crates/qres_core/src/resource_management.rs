@@ -17,12 +17,12 @@ use std::path::Path;
 /// Energy costs for swarm operations (in abstract energy units)
 /// Derived from SNN energy analysis: predict is cheap (spiking), transmission is expensive
 pub mod energy_costs {
-    pub const PREDICT: u32 = 1;           // Sparse event-driven spiking cost
-    pub const GOSSIP_SEND: u32 = 50;      // Radio/network transmission (high)
-    pub const GOSSIP_RECEIVE: u32 = 20;   // Processing incoming packets
-    pub const ADAPT: u32 = 25;            // Weight update cost
-    pub const RECHARGE_RATE: u32 = 5;     // Energy recovered per Calm tick
-    pub const HEARTBEAT: u32 = 5;         // Low-cost proof-of-life packet
+    pub const PREDICT: u32 = 1; // Sparse event-driven spiking cost
+    pub const GOSSIP_SEND: u32 = 50; // Radio/network transmission (high)
+    pub const GOSSIP_RECEIVE: u32 = 20; // Processing incoming packets
+    pub const ADAPT: u32 = 25; // Weight update cost
+    pub const RECHARGE_RATE: u32 = 5; // Energy recovered per Calm tick
+    pub const HEARTBEAT: u32 = 5; // Low-cost proof-of-life packet
 }
 
 // =============================================================================
@@ -75,28 +75,27 @@ pub const SNN_THEORETICAL_PROFILE: EnergyProfile = EnergyProfile {
 /// Based on: ~100mA idle, ~150mA active WiFi TX
 pub const PI_ZERO_PROFILE: EnergyProfile = EnergyProfile {
     name: "Raspberry Pi Zero 2 W",
-    predict_cost: 2,        // ARM Cortex-A53 inference
-    gossip_send_cost: 120,  // WiFi radio TX (high power)
-    gossip_recv_cost: 45,   // WiFi radio RX
-    adapt_cost: 35,         // Memory-bound weight updates
-    idle_leak_rate: 10,     // Always-on OS overhead
-    heartbeat_cost: 15,     // Minimal WiFi beacon
-    recharge_rate: 8,       // Solar panel assumption
+    predict_cost: 2,       // ARM Cortex-A53 inference
+    gossip_send_cost: 120, // WiFi radio TX (high power)
+    gossip_recv_cost: 45,  // WiFi radio RX
+    adapt_cost: 35,        // Memory-bound weight updates
+    idle_leak_rate: 10,    // Always-on OS overhead
+    heartbeat_cost: 15,    // Minimal WiFi beacon
+    recharge_rate: 8,      // Solar panel assumption
 };
 
 /// ESP32-S3 profile (estimated)
 /// Based on: ~40mA idle (WiFi modem sleep), ~240mA active TX
 pub const ESP32_PROFILE: EnergyProfile = EnergyProfile {
     name: "ESP32-S3 (Low Power)",
-    predict_cost: 1,        // Optimized TinyML inference
-    gossip_send_cost: 200,  // WiFi TX (very high relative to idle)
-    gossip_recv_cost: 80,   // WiFi RX
-    adapt_cost: 20,         // Flash write cost
-    idle_leak_rate: 5,      // Modem sleep mode
-    heartbeat_cost: 25,     // BLE beacon alternative
-    recharge_rate: 3,       // Battery assumption
+    predict_cost: 1,       // Optimized TinyML inference
+    gossip_send_cost: 200, // WiFi TX (very high relative to idle)
+    gossip_recv_cost: 80,  // WiFi RX
+    adapt_cost: 20,        // Flash write cost
+    idle_leak_rate: 5,     // Modem sleep mode
+    heartbeat_cost: 25,    // BLE beacon alternative
+    recharge_rate: 3,      // Battery assumption
 };
-
 
 /// Deterministic energy pool for resource-aware decision making
 #[derive(Debug, Clone)]
@@ -124,17 +123,17 @@ impl EnergyPool {
             lifetime_consumption: 0,
         }
     }
-    
+
     /// Current energy level
     pub fn current(&self) -> u32 {
         self.current
     }
-    
+
     /// Maximum capacity
     pub fn max_capacity(&self) -> u32 {
         self.max_capacity
     }
-    
+
     /// Current energy as a ratio (0.0 to 1.0)
     pub fn ratio(&self) -> f32 {
         if self.max_capacity == 0 {
@@ -142,17 +141,17 @@ impl EnergyPool {
         }
         self.current as f32 / self.max_capacity as f32
     }
-    
+
     /// Total lifetime energy consumed
     pub fn lifetime_consumption(&self) -> u64 {
         self.lifetime_consumption
     }
-    
+
     /// Check if we can afford a cost
     pub fn can_afford(&self, cost: u32) -> bool {
         self.current >= cost
     }
-    
+
     /// Spend energy, returns true if successful, false if insufficient
     pub fn spend(&mut self, cost: u32) -> bool {
         if self.can_afford(cost) {
@@ -163,22 +162,22 @@ impl EnergyPool {
             false
         }
     }
-    
+
     /// Recharge energy (capped at max_capacity)
     pub fn recharge(&mut self, amount: u32) {
         self.current = (self.current + amount).min(self.max_capacity);
     }
-    
+
     /// Check if energy is critical (< 10%)
     pub fn is_critical(&self) -> bool {
         self.ratio() < 0.10
     }
-    
+
     /// Check if energy is low (< 30%)
     pub fn is_low(&self) -> bool {
         self.ratio() < 0.30
     }
-    
+
     /// Force set energy (for testing)
     pub fn set_energy(&mut self, amount: u32) {
         self.current = amount.min(self.max_capacity);
@@ -211,36 +210,36 @@ pub fn calculate_broadcast_utility(
 #[cfg(test)]
 mod energy_pool_tests {
     use super::*;
-    
+
     #[test]
     fn test_energy_pool_basics() {
         let mut pool = EnergyPool::new(100);
         assert_eq!(pool.current(), 100);
         assert_eq!(pool.ratio(), 1.0);
-        
+
         assert!(pool.spend(30));
         assert_eq!(pool.current(), 70);
         assert!((pool.ratio() - 0.7).abs() < 0.01);
-        
+
         pool.recharge(50);
         assert_eq!(pool.current(), 100); // Capped at max
     }
-    
+
     #[test]
     fn test_energy_critical_threshold() {
         let mut pool = EnergyPool::new(100);
         pool.set_energy(9);
         assert!(pool.is_critical());
-        
+
         pool.set_energy(10);
         assert!(!pool.is_critical());
     }
-    
+
     #[test]
     fn test_insufficient_energy() {
         let mut pool = EnergyPool::new(100);
         pool.set_energy(10);
-        
+
         assert!(!pool.spend(50)); // Can't afford
         assert_eq!(pool.current(), 10); // Unchanged
     }

@@ -95,7 +95,7 @@ impl SilenceController {
                 // Utility gate: (entropy * reputation) > (cost * efficiency_bias)
                 let utility = local_entropy * reputation;
                 let threshold = gossip_cost as f32 * self.efficiency_bias;
-                
+
                 // Also broadcast if energy is high (>70%) to contribute to swarm
                 utility > threshold || energy_ratio > 0.70
             }
@@ -174,10 +174,10 @@ mod tests {
     #[test]
     fn test_silence_controller_utility_gate() {
         let mut controller = SilenceController::new();
-        
+
         // High entropy, high reputation -> should broadcast
         assert!(controller.should_broadcast(0.8, 80.0, 0.5, 50));
-        
+
         // Low entropy, low reputation -> should NOT broadcast (below threshold)
         let mut controller2 = SilenceController::new();
         assert!(!controller2.should_broadcast(0.1, 10.0, 0.5, 50));
@@ -186,7 +186,7 @@ mod tests {
     #[test]
     fn test_silence_controller_energy_critical() {
         let mut controller = SilenceController::new();
-        
+
         // Even with high utility, critical energy prevents broadcast
         assert!(!controller.should_broadcast(1.0, 100.0, 0.05, 50));
     }
@@ -195,15 +195,15 @@ mod tests {
     fn test_silence_controller_transitions() {
         let mut controller = SilenceController::new();
         assert_eq!(controller.state(), SilenceState::Active);
-        
+
         // Transition to DeepSilence when stable
         controller.transition(Regime::Calm, true, 150);
         assert_eq!(controller.state(), SilenceState::DeepSilence);
-        
+
         // Wake on PreStorm
         controller.transition(Regime::PreStorm, false, 0);
         assert_eq!(controller.state(), SilenceState::Alert);
-        
+
         // Full wake on Storm
         controller.transition(Regime::Storm, false, 0);
         assert_eq!(controller.state(), SilenceState::Active);
@@ -213,12 +213,12 @@ mod tests {
     fn test_silence_controller_heartbeat() {
         let mut controller = SilenceController::new().with_heartbeat_interval(10);
         controller.set_state(SilenceState::DeepSilence);
-        
+
         // Should not broadcast initially
         for _ in 0..9 {
             assert!(!controller.should_broadcast(0.1, 50.0, 0.5, 50));
         }
-        
+
         // 10th tick: should send heartbeat
         assert!(controller.should_broadcast(0.1, 50.0, 0.5, 50));
     }

@@ -46,7 +46,7 @@ jobs:
 
       - name: Clippy Linting
         continue-on-error: true
-        run: cargo clippy --workspace --exclude qres-studio -- -D warnings
+        run: cargo clippy --workspace -- -D warnings
 
       - name: Install Linux Dependencies
         if: runner.os == 'Linux'
@@ -55,7 +55,7 @@ jobs:
           sudo apt-get install -y libasound2-dev pkg-config libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 
       - name: Run Core Unit Tests
-        run: cargo test --workspace --exclude qres-studio --verbose
+        run: cargo test --workspace --verbose
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
@@ -65,7 +65,7 @@ jobs:
         run: wasm-pack build --target web
 
       - name: Verify Release Build
-        run: cargo build --release --workspace --exclude qres-studio
+        run: cargo build --release --workspace
 
   integration-test:
     name: Python Integration
@@ -98,41 +98,3 @@ jobs:
           source .venv/bin/activate
           python -c "from qres import qres_rust; print('Rust core imported successfully')"
           python -c "from qres.qres_rust import encode_bytes, decode_bytes; print('Core functions available')"
-
-
-
-  studio-test:
-    name: GUI Build
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - name: Install Dependencies
-        working-directory: web
-        run: |
-          npm ci
-          npm run check
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-      - name: Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-studio-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-studio-
-      - name: Install Linux GUI Libs
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-      - name: Check Backend
-        working-directory: web/src-tauri
-        run: cargo check

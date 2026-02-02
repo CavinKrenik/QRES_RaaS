@@ -530,35 +530,38 @@ fn verification_bfp16_vanishing_gradient_autotuner() {
 }
 
 /// SNN vs ANN Energy Collapse Duel
-/// 
+///
 /// Simulates two swarms under identical conditions:
 /// - ANN swarm: 20x energy cost per operation (traditional neural network)
 /// - SNN swarm: 1x energy cost per operation (spiking neural network)
-/// 
+///
 /// Based on the 21.9x energy reduction from docs/theory/SNN_ENERGY_ANALYSIS.md
-/// 
+///
 /// Expected Result:
 /// - ANN swarm collapses to 0 energy (death spiral)
 /// - SNN swarm survives at 80%+ capacity
 #[test]
 fn verification_snn_vs_ann_energy_collapse() {
     use qres_core::resource_management::{energy_costs, EnergyPool};
-    use rand::SeedableRng;
     use rand::rngs::StdRng;
     use rand::Rng;
-    
+    use rand::SeedableRng;
+
     const N_NODES: usize = 50;
     const N_TICKS: usize = 200;
-    const ANN_COST_MULTIPLIER: u32 = 20;  // 20x energy per op
-    const SNN_COST_MULTIPLIER: u32 = 1;   // 1x energy per op (baseline)
-    const SEED: u64 = 12345;              // Fixed seed for reproducibility
-    const ENERGY_CAPACITY: u32 = 5000;    // High enough for ANN to afford operations
-    
+    const ANN_COST_MULTIPLIER: u32 = 20; // 20x energy per op
+    const SNN_COST_MULTIPLIER: u32 = 1; // 1x energy per op (baseline)
+    const SEED: u64 = 12345; // Fixed seed for reproducibility
+    const ENERGY_CAPACITY: u32 = 5000; // High enough for ANN to afford operations
+
     println!("--- SNN vs ANN Energy Collapse Duel ---");
-    println!("Nodes: {}, Ticks: {}, Capacity: {}", N_NODES, N_TICKS, ENERGY_CAPACITY);
+    println!(
+        "Nodes: {}, Ticks: {}, Capacity: {}",
+        N_NODES, N_TICKS, ENERGY_CAPACITY
+    );
     println!("ANN cost multiplier: {}x", ANN_COST_MULTIPLIER);
     println!("SNN cost multiplier: {}x", SNN_COST_MULTIPLIER);
-    
+
     // Create two swarms with identical starting energy
     let mut ann_swarm: Vec<EnergyPool> = (0..N_NODES)
         .map(|_| EnergyPool::new(ENERGY_CAPACITY))
@@ -566,7 +569,7 @@ fn verification_snn_vs_ann_energy_collapse() {
     let mut snn_swarm: Vec<EnergyPool> = (0..N_NODES)
         .map(|_| EnergyPool::new(ENERGY_CAPACITY))
         .collect();
-    
+
     // Pre-generate activity pattern with seeded RNG for IDENTICAL workload
     let mut rng = StdRng::seed_from_u64(SEED);
     let activity_pattern: Vec<Vec<bool>> = (0..N_TICKS)
@@ -575,76 +578,92 @@ fn verification_snn_vs_ann_energy_collapse() {
     let recharge_pattern: Vec<Vec<bool>> = (0..N_TICKS)
         .map(|_| (0..N_NODES).map(|_| rng.gen_bool(0.2)).collect())
         .collect();
-    
+
     for tick in 0..N_TICKS {
         // Both swarms get IDENTICAL activity, only cost differs
         for (i, node) in ann_swarm.iter_mut().enumerate() {
             if activity_pattern[tick][i] {
-                let total_cost = (energy_costs::PREDICT + energy_costs::GOSSIP_SEND) * ANN_COST_MULTIPLIER;
+                let total_cost =
+                    (energy_costs::PREDICT + energy_costs::GOSSIP_SEND) * ANN_COST_MULTIPLIER;
                 node.spend(total_cost);
             }
             if !node.is_critical() && recharge_pattern[tick][i] {
                 node.recharge(energy_costs::RECHARGE_RATE);
             }
         }
-        
+
         for (i, node) in snn_swarm.iter_mut().enumerate() {
             if activity_pattern[tick][i] {
-                let total_cost = (energy_costs::PREDICT + energy_costs::GOSSIP_SEND) * SNN_COST_MULTIPLIER;
+                let total_cost =
+                    (energy_costs::PREDICT + energy_costs::GOSSIP_SEND) * SNN_COST_MULTIPLIER;
                 node.spend(total_cost);
             }
             if !node.is_critical() && recharge_pattern[tick][i] {
                 node.recharge(energy_costs::RECHARGE_RATE);
             }
         }
-        
+
         // Log every 50 ticks
         if tick % 50 == 0 || tick == N_TICKS - 1 {
             let ann_alive = ann_swarm.iter().filter(|n| !n.is_critical()).count();
             let snn_alive = snn_swarm.iter().filter(|n| !n.is_critical()).count();
             let ann_avg: f32 = ann_swarm.iter().map(|n| n.ratio()).sum::<f32>() / N_NODES as f32;
             let snn_avg: f32 = snn_swarm.iter().map(|n| n.ratio()).sum::<f32>() / N_NODES as f32;
-            
+
             println!(
                 "  Tick {:3}: ANN alive={:2} (avg {:.0}%) | SNN alive={:2} (avg {:.0}%)",
-                tick, ann_alive, ann_avg * 100.0, snn_alive, snn_avg * 100.0
+                tick,
+                ann_alive,
+                ann_avg * 100.0,
+                snn_alive,
+                snn_avg * 100.0
             );
         }
     }
-    
+
     // Final statistics
     let ann_dead = ann_swarm.iter().filter(|n| n.current() == 0).count();
     let snn_dead = snn_swarm.iter().filter(|n| n.current() == 0).count();
     let ann_avg_final: f32 = ann_swarm.iter().map(|n| n.ratio()).sum::<f32>() / N_NODES as f32;
     let snn_avg_final: f32 = snn_swarm.iter().map(|n| n.ratio()).sum::<f32>() / N_NODES as f32;
-    
+
     println!("\n--- Final Results ---");
-    println!("ANN Swarm: {} dead nodes, {:.1}% average energy", ann_dead, ann_avg_final * 100.0);
-    println!("SNN Swarm: {} dead nodes, {:.1}% average energy", snn_dead, snn_avg_final * 100.0);
-    
+    println!(
+        "ANN Swarm: {} dead nodes, {:.1}% average energy",
+        ann_dead,
+        ann_avg_final * 100.0
+    );
+    println!(
+        "SNN Swarm: {} dead nodes, {:.1}% average energy",
+        snn_dead,
+        snn_avg_final * 100.0
+    );
+
     // Assertions: SNN should significantly outperform ANN
-    
+
     // 1. SNN should have higher average energy
     assert!(
         snn_avg_final > ann_avg_final,
         "SNN swarm ({:.1}%) should have more energy than ANN swarm ({:.1}%)",
-        snn_avg_final * 100.0, ann_avg_final * 100.0
+        snn_avg_final * 100.0,
+        ann_avg_final * 100.0
     );
-    
+
     // 2. SNN should have fewer dead nodes
     assert!(
         snn_dead <= ann_dead,
         "SNN swarm ({} dead) should have fewer dead nodes than ANN swarm ({} dead)",
-        snn_dead, ann_dead
+        snn_dead,
+        ann_dead
     );
-    
+
     // 3. ANN should show significant energy depletion (death spiral)
     assert!(
         ann_avg_final < 0.30,
         "ANN swarm should deplete to <30% energy (death spiral), got {:.1}%",
         ann_avg_final * 100.0
     );
-    
+
     // 4. SNN should survive better than ANN (at least 2x more energy)
     let survival_ratio = snn_avg_final / ann_avg_final.max(0.01);
     assert!(
@@ -652,11 +671,20 @@ fn verification_snn_vs_ann_energy_collapse() {
         "SNN should have at least 2x more energy than ANN, got {:.1}x",
         survival_ratio
     );
-    
-    println!("\nSURVIVAL ADVANTAGE: SNN has {:.1}x more energy than ANN", survival_ratio);
+
+    println!(
+        "\nSURVIVAL ADVANTAGE: SNN has {:.1}x more energy than ANN",
+        survival_ratio
+    );
     println!("SNN vs ANN ENERGY COLLAPSE: VERIFIED");
-    println!("  - ANN collapsed to {:.1}% under 20x energy cost", ann_avg_final * 100.0);
-    println!("  - SNN survived at {:.1}% with 1x cost", snn_avg_final * 100.0);
+    println!(
+        "  - ANN collapsed to {:.1}% under 20x energy cost",
+        ann_avg_final * 100.0
+    );
+    println!(
+        "  - SNN survived at {:.1}% with 1x cost",
+        snn_avg_final * 100.0
+    );
     println!("  - Survival ratio: {:.1}x (target: >2.0x)", survival_ratio);
 }
 
@@ -669,28 +697,33 @@ fn verification_snn_vs_ann_energy_collapse() {
 /// Failure: Without silence, swarm hits 0 energy within 1000 ticks
 #[test]
 fn verification_strategic_silence_indefinite_survival() {
-    use qres_core::adaptive::{SilenceController, Regime};
+    use qres_core::adaptive::{Regime, SilenceController};
     use qres_core::resource_management::{energy_costs, EnergyPool};
-    use rand::SeedableRng;
     use rand::rngs::StdRng;
     use rand::Rng;
-    
+    use rand::SeedableRng;
+
     const N_NODES: usize = 50;
     const N_TICKS: usize = 5000;
     const SEED: u64 = 54321;
     const ENERGY_CAPACITY: u32 = 1000;
     const RECHARGE_CAP: f32 = 0.50; // Can only recharge to 50% max
-    
+
     println!("--- Strategic Silence: Indefinite Survival Test ---");
-    println!("Nodes: {}, Ticks: {}, Recharge Cap: {}%", N_NODES, N_TICKS, RECHARGE_CAP * 100.0);
-    
+    println!(
+        "Nodes: {}, Ticks: {}, Recharge Cap: {}%",
+        N_NODES,
+        N_TICKS,
+        RECHARGE_CAP * 100.0
+    );
+
     // Create swarm with SilenceController
     struct SilentNode {
         energy: EnergyPool,
         silence: SilenceController,
         calm_streak: usize,
     }
-    
+
     let mut swarm: Vec<SilentNode> = (0..N_NODES)
         .map(|_| SilentNode {
             energy: EnergyPool::new(ENERGY_CAPACITY),
@@ -698,11 +731,11 @@ fn verification_strategic_silence_indefinite_survival() {
             calm_streak: 0,
         })
         .collect();
-    
+
     let mut rng = StdRng::seed_from_u64(SEED);
     let mut broadcast_count = 0u64;
     let mut heartbeat_count = 0u64;
-    
+
     for tick in 0..N_TICKS {
         // Determine regime for this tick (80% Calm, 15% PreStorm, 5% Storm)
         let regime_roll: f32 = rng.gen();
@@ -713,7 +746,7 @@ fn verification_strategic_silence_indefinite_survival() {
         } else {
             Regime::Calm
         };
-        
+
         for node in swarm.iter_mut() {
             // Update calm streak
             if current_regime == Regime::Calm {
@@ -721,15 +754,16 @@ fn verification_strategic_silence_indefinite_survival() {
             } else {
                 node.calm_streak = 0;
             }
-            
+
             // Transition silence state
             let variance_stable = node.calm_streak > 100;
-            node.silence.transition(current_regime, variance_stable, node.calm_streak);
-            
+            node.silence
+                .transition(current_regime, variance_stable, node.calm_streak);
+
             // Simulate local entropy (random value)
             let local_entropy: f32 = rng.gen_range(0.0..1.0);
             let reputation = 50.0; // Average reputation
-            
+
             // Check if should broadcast
             if node.silence.should_broadcast(
                 local_entropy,
@@ -747,7 +781,7 @@ fn verification_strategic_silence_indefinite_survival() {
                     heartbeat_count += 1;
                 }
             }
-            
+
             // Recharge (capped at 50%)
             if current_regime == Regime::Calm && rng.gen_bool(0.3) {
                 let current_ratio = node.energy.ratio();
@@ -761,40 +795,63 @@ fn verification_strategic_silence_indefinite_survival() {
                 }
             }
         }
-        
+
         // Log every 1000 ticks
         if tick % 1000 == 0 || tick == N_TICKS - 1 {
             let alive = swarm.iter().filter(|n| !n.energy.is_critical()).count();
-            let avg_energy: f32 = swarm.iter().map(|n| n.energy.ratio()).sum::<f32>() / N_NODES as f32;
-            
+            let avg_energy: f32 =
+                swarm.iter().map(|n| n.energy.ratio()).sum::<f32>() / N_NODES as f32;
+
             println!(
                 "  Tick {:4}: Alive={:2}/{} (avg {:.0}%) | Broadcasts: {} | Heartbeats: {}",
-                tick, alive, N_NODES, avg_energy * 100.0, broadcast_count, heartbeat_count
+                tick,
+                alive,
+                N_NODES,
+                avg_energy * 100.0,
+                broadcast_count,
+                heartbeat_count
             );
         }
     }
-    
+
     // Final statistics
     let final_alive = swarm.iter().filter(|n| !n.energy.is_critical()).count();
     let alive_ratio = final_alive as f32 / N_NODES as f32;
-    let avg_energy_final: f32 = swarm.iter().map(|n| n.energy.ratio()).sum::<f32>() / N_NODES as f32;
-    
+    let avg_energy_final: f32 =
+        swarm.iter().map(|n| n.energy.ratio()).sum::<f32>() / N_NODES as f32;
+
     println!("\n--- Final Results ---");
-    println!("Survival Rate: {:.1}% ({}/{})", alive_ratio * 100.0, final_alive, N_NODES);
+    println!(
+        "Survival Rate: {:.1}% ({}/{})",
+        alive_ratio * 100.0,
+        final_alive,
+        N_NODES
+    );
     println!("Average Energy: {:.1}%", avg_energy_final * 100.0);
-    println!("Total Broadcasts: {} ({:.1} per tick)", broadcast_count, broadcast_count as f64 / N_TICKS as f64);
-    println!("Total Heartbeats: {} ({:.1} per tick)", heartbeat_count, heartbeat_count as f64 / N_TICKS as f64);
-    
+    println!(
+        "Total Broadcasts: {} ({:.1} per tick)",
+        broadcast_count,
+        broadcast_count as f64 / N_TICKS as f64
+    );
+    println!(
+        "Total Heartbeats: {} ({:.1} per tick)",
+        heartbeat_count,
+        heartbeat_count as f64 / N_TICKS as f64
+    );
+
     // Success: >90% of nodes still operational after 5000 ticks
     assert!(
         alive_ratio >= 0.90,
         "Swarm should maintain >90% operational nodes, got {:.1}%",
         alive_ratio * 100.0
     );
-    
+
     // Verify silence is working (broadcasts should be reduced)
     let broadcasts_per_tick = broadcast_count as f64 / N_TICKS as f64;
     println!("\nSTRATEGIC SILENCE: VERIFIED");
     println!("  - Survived {} ticks at 50% recharge cap", N_TICKS);
-    println!("  - Broadcasts/tick: {:.1} (reduced from {} max)", broadcasts_per_tick, N_NODES);
+    println!(
+        "  - Broadcasts/tick: {:.1} (reduced from {} max)",
+        broadcasts_per_tick, N_NODES
+    );
 }

@@ -117,7 +117,7 @@ struct SwarmMetrics {
     storm_nodes: u32,
     active_synapses: u32,
     packets_in_flight: u32,
-    entropy: f32, // 0.0 = all calm, 1.0 = all storm
+    entropy: f32,    // 0.0 = all calm, 1.0 = all storm
     avg_energy: f32, // Average energy across swarm (0.0 to 1.0)
 }
 
@@ -192,15 +192,15 @@ struct Velocity(Vec3);
 /// Energy pool for resource-aware simulation (RaaS)
 #[derive(Component)]
 struct Energy {
-    current: f32,   // 0.0 to 1.0
+    current: f32,    // 0.0 to 1.0
     drain_rate: f32, // Per-second drain during Storm
 }
 
 impl Default for Energy {
     fn default() -> Self {
         Self {
-            current: 1.0,       // Start at full
-            drain_rate: 0.1,    // Drain 10% per second in Storm
+            current: 1.0,    // Start at full
+            drain_rate: 0.1, // Drain 10% per second in Storm
         }
     }
 }
@@ -209,7 +209,7 @@ impl Default for Energy {
 #[derive(Component, Default, Clone, Copy, PartialEq)]
 enum SilenceMode {
     #[default]
-    Active,      // Normal gossiping - vibrant color
+    Active, // Normal gossiping - vibrant color
     Alert,       // PreStorm detected - pulsing amber
     DeepSilence, // Conserving energy - greyed out
 }
@@ -416,12 +416,9 @@ fn simulate_cortex_reaction(
 }
 
 /// 2b. Energy drain/recharge based on regime (RaaS)
-fn update_energy(
-    time: Res<Time>,
-    mut query: Query<(&Cortex, &mut Energy)>,
-) {
+fn update_energy(time: Res<Time>, mut query: Query<(&Cortex, &mut Energy)>) {
     let dt = time.delta_seconds();
-    
+
     for (cortex, mut energy) in query.iter_mut() {
         match cortex.regime {
             Regime::Storm => {
@@ -569,6 +566,7 @@ fn persist_evolved_genes(time: Res<Time>, mut query: Query<(&IoTNode, &mut Corte
 }
 
 /// 8. God View Visuals - colorful nodes with glow + FATIGUE COLORING + SILENCE MODE
+#[allow(clippy::type_complexity)]
 fn update_visuals(
     mut query: Query<(
         &Cortex,
@@ -585,7 +583,9 @@ fn update_visuals(
 ) {
     let t = time.elapsed_seconds();
 
-    for (cortex, node, energy, mut silence_mode, mut mat, mut transform, mut visibility) in query.iter_mut() {
+    for (cortex, node, energy, mut silence_mode, mut mat, mut transform, mut visibility) in
+        query.iter_mut()
+    {
         // Cutaway Logic: Hide outer signal-blocking nodes to see internal silence
         if settings.cutaway_enabled && transform.translation.length() > settings.cutaway_radius {
             *visibility = Visibility::Hidden;
@@ -597,29 +597,29 @@ fn update_visuals(
         // In real daemon, this comes from SilenceController
         *silence_mode = match cortex.regime {
             Regime::Storm => SilenceMode::Active, // Always active during storm
-            Regime::Alert => SilenceMode::Alert, // Pulsing amber for Alert regime
+            Regime::Alert => SilenceMode::Alert,  // Pulsing amber for Alert regime
             Regime::Calm => {
                 // Strategic Silence: If calm, we go dark to save energy
                 // Only act if we have excess energy AND a reason (simulated by random check)
                 if energy.current > 0.95 && (t * 0.5 + node.id as f32).sin() > 0.9 {
-                     SilenceMode::Active // Occasional chirping
+                    SilenceMode::Active // Occasional chirping
                 } else {
-                     SilenceMode::DeepSilence // Default to silence
+                    SilenceMode::DeepSilence // Default to silence
                 }
             }
         };
-        
+
         // Color based on state with variety
         let hue_offset = (node.id as f32 * 0.1).sin() * 0.1;
-        
+
         // FATIGUE: Energy ratio affects saturation (low energy = grey/desaturated)
         let fatigue_factor = energy.current; // 1.0 = vibrant, 0.0 = greyscale
-        
+
         // SILENCE MODE: Additional color modifiers
         let (silence_saturation_mult, silence_emissive_mult) = match *silence_mode {
-            SilenceMode::Active => (1.0, 1.0),       // Full color
-            SilenceMode::Alert => (0.8, 0.6),        // Slightly muted
-            SilenceMode::DeepSilence => (0.3, 0.1),  // Grey/very dim
+            SilenceMode::Active => (1.0, 1.0),      // Full color
+            SilenceMode::Alert => (0.8, 0.6),       // Slightly muted
+            SilenceMode::DeepSilence => (0.3, 0.1), // Grey/very dim
         };
 
         let (base_color, emissive) = match cortex.neuron_type {
@@ -631,9 +631,9 @@ fn update_visuals(
                 (
                     Color::hsl(hue * 360.0, saturation, 0.6),
                     Color::rgb(
-                        (0.4 + pulse) * fatigue_factor * silence_emissive_mult, 
-                        0.1 * fatigue_factor * silence_emissive_mult, 
-                        (0.6 + pulse) * fatigue_factor * silence_emissive_mult
+                        (0.4 + pulse) * fatigue_factor * silence_emissive_mult,
+                        0.1 * fatigue_factor * silence_emissive_mult,
+                        (0.6 + pulse) * fatigue_factor * silence_emissive_mult,
                     ),
                 )
             }
@@ -648,10 +648,18 @@ fn update_visuals(
                 Regime::Calm => {
                     // DeepSilence nodes in Calm regime appear GREY
                     let saturation = (0.4 + 0.3 * fatigue_factor) * silence_saturation_mult;
-                    let base_lightness = if *silence_mode == SilenceMode::DeepSilence { 0.3 } else { 0.4 };
+                    let base_lightness = if *silence_mode == SilenceMode::DeepSilence {
+                        0.3
+                    } else {
+                        0.4
+                    };
                     (
                         Color::hsl(210.0 + hue_offset * 30.0, saturation, base_lightness),
-                        Color::rgb(0.0, 0.02 * fatigue_factor * silence_emissive_mult, 0.08 * fatigue_factor * silence_emissive_mult),
+                        Color::rgb(
+                            0.0,
+                            0.02 * fatigue_factor * silence_emissive_mult,
+                            0.08 * fatigue_factor * silence_emissive_mult,
+                        ),
                     )
                 }
                 _ => {
@@ -659,9 +667,13 @@ fn update_visuals(
                     let amber_pulse = ((t * 5.0 + node.id as f32).sin() * 0.5 + 0.5) * 0.3;
                     (
                         Color::hsl(45.0, 0.5 + 0.3 * fatigue_factor, 0.5 + amber_pulse * 0.1),
-                        Color::rgb(0.15 * fatigue_factor + amber_pulse, 0.1 * fatigue_factor, 0.0),
+                        Color::rgb(
+                            0.15 * fatigue_factor + amber_pulse,
+                            0.1 * fatigue_factor,
+                            0.0,
+                        ),
                     )
-                },
+                }
             },
         };
 
@@ -1028,6 +1040,13 @@ fn handle_visual_toggles(
 ) {
     if keyboard.just_pressed(KeyCode::KeyC) {
         settings.cutaway_enabled = !settings.cutaway_enabled;
-        println!("👁️ Cutaway Mode: {}", if settings.cutaway_enabled { "ON (Outer shell hidden)" } else { "OFF" });
+        println!(
+            "👁️ Cutaway Mode: {}",
+            if settings.cutaway_enabled {
+                "ON (Outer shell hidden)"
+            } else {
+                "OFF"
+            }
+        );
     }
 }

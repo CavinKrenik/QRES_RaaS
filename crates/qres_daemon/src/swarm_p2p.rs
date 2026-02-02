@@ -81,7 +81,7 @@ pub struct SwarmStatus {
     pub connected_peers: usize,
     pub known_peers: Vec<String>,
     pub brain_confidence: Vec<f32>,
-    pub total_energy_consumed: u64, // calibration metric
+    pub total_energy_consumed: u64,   // calibration metric
     pub energy_efficiency_ratio: f32, // useful work / total energy
 }
 
@@ -303,10 +303,10 @@ pub async fn start_p2p_node(
                     let current_regime = app_state.regime_detector.current_regime();
                     let variance_stable = app_state.regime_detector.is_stable_enough_for_silence();
                     let calm_streak = app_state.regime_detector.calm_streak();
-                    
+
                     // Transition silence state based on regime stability
                     app_state.silence_controller.transition(current_regime, variance_stable, calm_streak);
-                    
+
                     // In Storm mode, always broadcast (priority escalation)
                     if matches!(current_regime, Regime::Storm) {
                         false // Don't silence during storms
@@ -461,7 +461,7 @@ pub async fn start_p2p_node(
                         }
                         }
                     } else {
-                        info!("Energy Critical: Broadcast inhibited (Ratio: {:.2})", 
+                        info!("Energy Critical: Broadcast inhibited (Ratio: {:.2})",
                             state.read().await.energy_pool.ratio());
                     }
                 }
@@ -503,8 +503,8 @@ pub async fn start_p2p_node(
                                 let active_peers = app_state.connected_peers.len();
 
                                 let metrics = SingularityMetrics::new(
-                                    local_loss, 
-                                    swarm_variance.sqrt(), 
+                                    local_loss,
+                                    swarm_variance.sqrt(),
                                     active_peers,
                                     app_state.energy_pool.lifetime_consumption(),
                                     app_state.energy_pool.ratio()
