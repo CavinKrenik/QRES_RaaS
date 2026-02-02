@@ -61,7 +61,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}
-          path: dist
+          path: bindings/python/dist
 
   build_cli:
     name: Build CLI (${{ matrix.os }})
@@ -116,14 +116,18 @@ jobs:
       - name: Build WASM
         working-directory: ./crates/qres_wasm
         run: wasm-pack build --target web --release
+      
+      - name: Compress WASM Package
+        run: tar -czvf qres-wasm.tar.gz -C crates/qres_wasm/pkg .
+      
       - uses: actions/upload-artifact@v4
         with:
           name: wasm-pkg
-          path: crates/qres_wasm/pkg
+          path: qres-wasm.tar.gz
 
   release:
     name: Publish Release
-    needs: [build_wheels, build_cli]
+    needs: [build_wheels, build_cli, build_wasm]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -140,6 +144,10 @@ jobs:
           pattern: cli-*
           path: dist
           merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-pkg
+          path: dist
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
