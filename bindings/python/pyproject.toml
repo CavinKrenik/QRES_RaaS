@@ -4,8 +4,8 @@ build-backend = "maturin"
 
 [project]
 name = "qres"
-version = "19.0.0"
-description = "QRES: Quantum-Relational Encoding System for Python"
+version = "19.0.1"
+description = "QRES RaaS: Resource-Aware Agentic Swarm for Python"
 readme = "README.md"
 authors = [{name = "Cavin Krenik"}]
 requires-python = ">=3.8"

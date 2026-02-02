@@ -20,7 +20,7 @@ fi
 
 # 3. Clone/Update Repository
 REPO_DIR="$HOME/QRES"
-REPO_URL="https://github.com/CavinKrenik/QRES.git"
+REPO_URL="https://github.com/CavinKrenik/QRES_RaaS.git"
 
 if [ -d "$REPO_DIR" ]; then
     echo ">> Updating existing repository at $REPO_DIR..."

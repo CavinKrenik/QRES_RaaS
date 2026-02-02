@@ -1,15 +1,15 @@
 # QRES &mdash; RaaS: Resource-Aware Agentic Swarm
 
-[![v19.0.1](https://img.shields.io/badge/version-19.0.1-blue.svg)](https://github.com/CavinKrenik/QRES/releases)
+[![v19.0.1](https://img.shields.io/badge/version-19.0.1-blue.svg)](https://github.com/CavinKrenik/QRES_RaaS/releases)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18193905-blue)](https://doi.org/10.5281/zenodo.18193905)
 [![Paper](https://img.shields.io/badge/Paper-BFT%20for%20Edge%20Learning-green.svg)](https://doi.org/10.5281/zenodo.18446020)
 [![no_std](https://img.shields.io/badge/no_std-compatible-green.svg)](https://docs.rust-embedded.org/book/intro/no-std.html)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
 [![Rust 2021](https://img.shields.io/badge/rust-2021-orange.svg)](https://www.rust-lang.org/)
 
-> **A decentralized operating system for neural swarms that treats energy and bandwidth as first-class constraints.**
+> **A decentralized operating system for autonomous agents on physical hardware with finite energy, unreliable links, and adversarial peers.**
 
-QRES solves the "Consensus vs. Bandwidth" dilemma for edge AI by replacing floating-point state shipping with deterministic rematerialization. Nodes exchange kilobyte-scale evolved genes instead of megabyte-scale gradient models, converging 12x faster on constrained IoT networks while consuming 99% less bandwidth than federated learning.
+RaaS (Resource-Aware Agentic Swarm) enforces three architectural pillars for survival: **Energy-Bounded Agency** (every operation is gated by energy accounting), **Verifiable Integrity** (cryptographic proofs without central trust), and **Autonomous Triage** (self-organizing regime switching). The reference implementation (QRES) uses deterministic rematerialization and Q16.16 fixed-point consensus to achieve 99% bandwidth reduction vs federated learning while tolerating 30% Byzantine attackers.
 
 **Architectural Scope:**
 Read **[SCOPE.md](./docs/SCOPE.md)** before deployment or evaluation. QRES is intentionally narrow.
@@ -61,20 +61,21 @@ stateDiagram-v2
 
 | Metric | Result | Context |
 |--------|--------|---------|
-| **Convergence** | 12x faster wall-clock vs FL | 56 kbps IoT networks, 100 nodes |
-| **Bandwidth** | 99% reduction vs federated learning | 8 KB/day/node vs 480 KB/day/node |
+| **Convergence** | <30 epochs to consensus | Verified on 100-node swarms with noise injection |
+| **Bandwidth** | 99% reduction vs federated learning | 8 KB/day vs 2.3 GB/day for traditional FL |
 | **Scalability** | 10,000 nodes (100% success) | Azure Standard_D2s, verified Jan 2026 |
-| **Compression** | 31.8x (SmoothSine) | Neural predictor gain: 1.5x over baseline |
+| **Compression** | 4.98x-31.8x (dataset-dependent) | SmoothSine 31.8x, Wafer 4.98x, ECG5000 4.98x |
 | **Memory** | < 1 KB per node overhead | `no_std` + `alloc`, O(1) per node |
 | **Byzantine Tolerance** | Drift < 5% at 30% coordinated bias | Coordinate-wise trimmed mean |
 | **Energy** | 21.9x advantage (SNN vs ANN) | Verified in simulation collapse test |
+| **TWT Sleep Savings** | 82% reduction in radio energy | MockRadio verified over 24h simulated period |
 
 ---
 
-## Architecture
+## Architecture: The RaaS Reference Implementation
 
 ```
-QRES/
+QRES_RaaS/
 ├── crates/
 │   ├── qres_core/           # no_std deterministic core (Body + Hippocampus)
 │   │   ├── adaptive/        # Regime detection, silence protocol
@@ -107,7 +108,7 @@ A `no_std` Rust library. All consensus math uses Q16.16 fixed-point (`I16F16`) f
 
 ### The Mind: `swarm_sim`
 
-Bevy-based 3D simulator demonstrating emergent swarm behavior: gene gossip, noise-zone storms, mutation cascades, and Lamarckian evolution. 150 nodes with force-directed physics, HDR bloom, and real-time HUD metrics.
+Bevy-based 3D simulator demonstrating emergent swarm behavior: gene gossip, noise-zone storms, mutation cascades, and Lamarckian evolution. Up to 100 nodes in 10x10 grid with force-directed physics, HDR bloom, and real-time HUD metrics.
 
 ### The Hippocampus: Persistent Memory
 
@@ -157,7 +158,7 @@ All tiers share the same `qres_core` binary. Hardware-specific behavior is isola
 # Core crate (no_std)
 cargo build -p qres_core --no-default-features --release
 
-# Full test suite (109 tests: unit + integration + v19 verification)
+# Full test suite (81 tests passing: unit + integration + v19 verification)
 cargo test -p qres_core --features std
 
 # TWT scheduler tests specifically
@@ -219,7 +220,7 @@ Dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your 
 @software{qres2026,
   author = {Krenik, Cavin},
   title = {QRES: Resource-Aware Agentic Swarm},
-  url = {https://github.com/CavinKrenik/QRES},
+  url = {https://github.com/CavinKrenik/QRES_RaaS},
   doi = {10.5281/zenodo.18193905},
   year = {2026}
 }
@@ -233,4 +234,4 @@ Dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your 
 
 ---
 
-**Status**: v19.0.1 (SecureANDsafe Hardening). Verified in simulation. Ready for edge deployment.
+**Status**: v19.0.1 "Secure & Safe" - High-Integrity Hardening Complete. Formally verified (TLA+), cryptographically secure (ZK-proofs), energy-aware (TWT scheduling). Ready for edge-case evaluation and hardware-in-the-loop deployment.
