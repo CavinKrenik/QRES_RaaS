@@ -1,0 +1,17 @@
+name: Minimal Verification
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Core
+        run: cargo build -p qres_core --release
+      - name: Run Tests
+        run: cargo test -p qres_core --features std -- --test-threads=1
