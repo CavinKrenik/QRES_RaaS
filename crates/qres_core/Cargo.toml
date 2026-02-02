@@ -1,0 +1,65 @@
+[package]
+name = "qres_core"
+version = "19.0.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[features]
+# default = ["std"]
+default = []
+std = ["serde/std", "rand/std", "rand/std_rng", "dep:walkdir", "constriction/std"]
+python = ["pyo3", "std"]
+dp = ["dep:opendp", "std"]
+gpu = []
+cli = ["dep:clap"]
+
+[lib]
+# Required for PyO3 when building Python extension
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+rand = { version = "0.8", default-features = false }
+lazy_static = { version = "1.4", features = ["spin_no_std"] }
+constriction = { version = "0.3", default-features = false }
+byteorder = "1.4"
+anyhow = "1.0"
+rustfft = "6.2"
+probability = "0.20"
+tract-onnx = "0.21"
+walkdir = { version = "2.3", optional = true }
+blake3 = { version = "1.5", default-features = false }
+libm = "0.2"
+wide = "0.7"
+num-traits = { version = "0.2", default-features = false, features = ["libm"] }
+pyo3 = { version = "0.22", optional = true, features = ["abi3-py38", "extension-module"] }
+fixed = "1.23"
+
+# Secure Aggregation dependencies
+x25519-dalek = { version = "2.0", default-features = false, features = ["static_secrets"] }
+rand_chacha = { version = "0.3", default-features = false }
+rand_core = { version = "0.6", default-features = false }
+# ZK Proofs dependencies (pinned for workspace compat)
+curve25519-dalek = { version = "=4.1.3", default-features = false, features = ["alloc", "zeroize", "rand_core", "serde"] }
+
+# Privacy features
+opendp = { version = "0.10", optional = true }
+
+# CLI support
+clap = { version = "4.4", default-features = false, features = ["derive", "std"], optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "baselines_bench"
+harness = false
+
+[[bench]]
+name = "privacy_overhead_bench"
+harness = false
+

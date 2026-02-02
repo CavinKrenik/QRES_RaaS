@@ -1,0 +1,43 @@
+[package]
+name = "benchmarks"
+version = "19.0.1"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.32", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+sysinfo = "0.29"
+anyhow = "1.0"
+qres_core = { path = "../../crates/qres_core", features = ["cli", "std"] }
+zstd = "0.13"
+rand = "0.8"
+csv = "1.3"
+
+[[bin]]
+name = "multivariate_demo"
+path = "src/multivariate_demo.rs"
+
+[[bin]]
+name = "encoding_benchmark"
+path = "src/encoding_benchmark.rs"
+
+[[bin]]
+name = "resource_benchmark"
+path = "src/resource_benchmark.rs"
+
+[[bin]]
+name = "accuracy_sim"
+path = "src/accuracy_sim.rs"
+
+[[bin]]
+name = "preventative_scaling"
+path = "src/preventative_scaling.rs"
+
+[[bin]]
+name = "comprehensive_runner"
+path = "src/comprehensive_runner.rs"
+
+[[bin]]
+name = "swarm_scale"
+path = "swarm_scale.rs"

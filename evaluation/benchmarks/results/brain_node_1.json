@@ -1,0 +1,1 @@
+{"version": 1, "confidence": [0.8, 0.1, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0], "stats": {"compressions": 10}, "predictors": ["lstm", "graph"]}

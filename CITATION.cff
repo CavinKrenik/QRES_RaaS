@@ -1,0 +1,69 @@
+cff-version: 1.2.0
+message: "If you use QRES in academic work, please cite the software and relevant papers below."
+
+title: "QRES: A Decentralized Operating System for Neural Swarms"
+version: "v19.0.1"
+doi: "10.5281/zenodo.18193905"
+date-released: "2026-02-02"
+
+authors:
+  - family-names: Krenik
+    given-names: Cavin
+    orcid: "https://orcid.org/0009-0008-9183-1278"
+
+abstract: >
+  QRES is a decentralized operating system for neural swarms, designed for
+  high-entropy edge environments. It introduces a "SwarmNeuron" architecture
+  that enables nodes to autonomously detect entropy spikes and evolve predictive
+  bytecodes. The system features a Persistent Evolution layer ("The Hippocampus"),
+  allowing learned strategies to survive reboots via Lamarckian inheritance.
+  Built on a purely deterministic no_std Rust core, QRES enables bit-perfect
+  consensus without heavy cryptographic proofs.
+
+keywords:
+  - Neural Swarms
+  - Edge OS
+  - Deterministic Computing
+  - Federated Learning
+  - Byzantine Fault Tolerance
+  - Lamarckian Evolution
+  - Hybrid Architecture
+  - Bit-Packing
+  - Neural Residual Prediction
+  - Internet of Things
+  - Rust
+
+license: MIT OR Apache-2.0
+
+repository-code: "https://github.com/CavinKrenik/QRES"
+url: "https://doi.org/10.5281/zenodo.18193905"
+
+preferred-citation:
+  type: software
+  authors:
+    - family-names: Krenik
+      given-names: Cavin
+      orcid: "https://orcid.org/0009-0008-9183-1278"
+  title: "QRES: A Decentralized Operating System for Neural Swarms"
+  year: 2026
+  version: "v19.0.1"
+  doi: "10.5281/zenodo.18193905"
+
+references:
+  - type: article
+    authors:
+      - family-names: Krenik
+        given-names: Cavin
+        orcid: "https://orcid.org/0009-0008-9183-1278"
+    title: "Deterministic Byzantine Fault Tolerance for Resource-Constrained Edge Learning"
+    year: 2026
+    doi: "10.5281/zenodo.18446020"
+
+  - type: article
+    authors:
+      - family-names: Krenik
+        given-names: Cavin
+        orcid: "https://orcid.org/0009-0008-9183-1278"
+    title: "Deterministic Rematerialization: Convergent Evolution in Cloud Kernels and Edge Swarms"
+    year: 2026
+    doi: "10.5281/zenodo.18305656"

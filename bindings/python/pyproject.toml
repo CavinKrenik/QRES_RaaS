@@ -1,0 +1,54 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "qres"
+version = "19.0.0"
+description = "QRES: Quantum-Relational Encoding System for Python"
+readme = "README.md"
+authors = [{name = "Cavin Krenik"}]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "scipy",
+]
+
+[project.optional-dependencies]
+# Lightweight CI dependencies - used in GitHub Actions (install torch CPU separately)
+ci = [
+    "networkx",
+    "gymnasium",
+]
+
+# Heavy ML dependencies - install locally with: pip install qres[ml]
+ml = [
+    "pandas",
+    "networkx",
+    "gymnasium",
+    "qutip",
+    "torch",
+    "sentence-transformers",
+    "open-clip-torch",
+    "pillow",
+    "scikit-learn",
+    "matplotlib",
+    "safetensors",
+    "transformers",
+    "stable-baselines3",
+    "shimmy",
+]
+
+
+[tool.maturin]
+# Point to qres_core crate (after workspace split)
+manifest-path = "../../crates/qres_core/Cargo.toml"
+# Point to the Python wrapper we moved to root
+python-source = "."
+module-name = "qres.qres_rust"
+features = ["python"]
+
+# Start with a clean slate by ignoring old artifacts
+[tool.maturin.sdist]
+include = ["../../crates/**/*", "**/*", "../../README.md", "pyproject.toml"]
+exclude = ["../../evaluation/**/*", "../../tests/data/**/*"]

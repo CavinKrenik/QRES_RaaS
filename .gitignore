@@ -1,0 +1,59 @@
+# Build Artifacts
+target/
+*.so
+*.dll
+*.dylib
+*.pyd
+*.p12
+/dist
+
+# Node / Frontend
+node_modules/
+.svelte-kit/
+build/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Runtime logs
+snn_stats.txt
+results.txt
+
+# QRES Output & Test Data
+*.qres
+swarms_memory/
+*.bin
+*.safetensors
+
+# Editor / IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Generated test data
+data/iot/*.dat
+iot_telemetry.dat
+iot_telemetry.dat.zst
+
+# Environment
+.env
+.agent/
+
+# LaTeX
+*.aux
+*.bbl
+*.blg
+*.out
+*.toc
+*.synctex.gz
+
+# Large datasets (download separately)
+data/MNIST/
+titan_data/
+**/jena_climate_2009_2016.csv
+**/ETTh1.csv
