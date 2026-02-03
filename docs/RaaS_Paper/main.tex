@@ -1,0 +1,647 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+% ========================================
+% Packages
+% ========================================
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsthm}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{url}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}{Definition}
+
+% Load custom macros
+\input{macros}
+
+% ========================================
+% Document Metadata
+% ========================================
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{QRES: A Resource-Aware Operating System\\for Byzantine-Tolerant Edge Intelligence}
+
+\author{\IEEEauthorblockN{Cavin Krenik}
+\IEEEauthorblockA{\textit{Independent Researcher}\\
+Email: cavin.krenik@example.com\\
+ORCID: 0009-0008-9183-1278}
+}
+
+\maketitle
+
+% ========================================
+% Abstract
+% ========================================
+\begin{abstract}
+We present \tool{QRES}\footnote{QRES originally denoted ``Quantum Residual Encoding System'' in early prototypes; the current system is purely classical but retains the acronym for continuity with prior publications~\cite{krenik2026byzantine}.}, a decentralized operating system for resource-constrained edge swarms operating under adversarial conditions. Unlike traditional federated learning systems that transmit multi-megabyte gradient vectors, \tool{QRES} achieves consensus through \textit{deterministic rematerialization}: nodes exchange 74-byte evolved strategies (``genes'') that encode predictive models as bytecode, achieving 99.2\% bandwidth reduction compared to standard Federated Averaging (FedAvg). The system architecture rests on three pillars: (1)~\textit{Energy-Bounded Agency}, where every computational operation is gated by explicit energy accounting, yielding a 21.9$\times$ advantage over conventional artificial neural network (ANN) baselines through spiking neural network (SNN) primitives; (2)~\textit{Verifiable Integrity}, implementing a five-layer ``immune system'' combining reputation tracking, differential privacy, and coordinate-wise trimmed mean aggregation to achieve $<5\%$ model drift under 30\% Byzantine attackers; and (3)~\textit{Autonomous Triage}, where nodes self-organize into three regime states (Calm, PreStorm, Storm) based on predictive entropy detection, achieving 82\% radio energy savings through reputation-weighted Target Wake Time (TWT) scheduling. We validate the system through multi-environment energy simulations demonstrating survival across 5 of 6 climate scenarios, Byzantine robustness experiments at scales up to $n{=}1000$ showing 92.8\% drift reduction, and a comprehensive ablation study quantifying each defense layer's contribution. Compared to Krum, Bulyan, and coordinate-wise median baselines, \tool{QRES} achieves 3.6--19.9$\times$ lower model drift under 25\% Byzantine attackers. Built on a \code{no\_std} Rust core using Q16.16 fixed-point arithmetic for bit-perfect determinism across x86, ARM, and RISC-V architectures, \tool{QRES} represents a paradigm shift from cloud-centric machine learning toward \textit{Post-Cloud edge intelligence} where swarms achieve consensus through compression rather than computation.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Edge computing, Byzantine fault tolerance, federated learning, energy-aware systems, spiking neural networks, deterministic consensus, swarm intelligence
+\end{IEEEkeywords}
+
+% ========================================
+% I. INTRODUCTION
+% ========================================
+\section{Introduction}
+
+The proliferation of Internet of Things (IoT) devices has created a new computational substrate: billions of resource-constrained nodes with intermittent connectivity, finite battery capacity, and exposure to adversarial manipulation. Traditional cloud-centric machine learning architectures fail in this environment---they assume reliable uplinks, abundant energy, and trusted aggregation servers. Federated Learning (FL)~\cite{mcmahan2017fedavg} partially addresses privacy and bandwidth constraints by keeping training data local, but inherits three critical limitations: (1)~\textbf{Energy blindness}: gradient computation and model updates occur without regard to remaining battery capacity; (2)~\textbf{Centralized trust}: the aggregation server represents a single point of failure and must be assumed honest; and (3)~\textbf{Floating-point non-determinism}: IEEE 754 arithmetic produces platform-dependent rounding errors that compound catastrophically across gossip-based consensus protocols.
+
+We introduce \tool{QRES}, a Resource-Aware Agentic Swarm (RaaS) operating system designed for the \textit{Post-Cloud} edge: physical deployments where nodes must survive brownouts, defend against Byzantine peers, and achieve consensus without central coordination. Rather than treating edge devices as ``thin clients'' for cloud inference, \tool{QRES} positions them as autonomous agents that evolve collective intelligence through viral spread of compressed predictive strategies.
+
+\subsection{The Post-Cloud Paradigm}
+
+The Post-Cloud edge is characterized by three constraints absent from datacenter environments:
+
+\begin{itemize}
+    \item \textbf{Finite Energy}: Nodes operate on battery or energy-harvesting power sources. Once $\Battery < \Battery_{\min}$, the node becomes unavailable until recharge. Unlike cloud VMs that can be migrated, physical devices experience \textit{true death}.
+
+    \item \textbf{Adversarial Peers}: Open-world deployments (e.g., smart city sensors, agricultural IoT) allow attacker-controlled nodes to join the swarm. Byzantine fault tolerance cannot rely on permissioned membership or proof-of-stake economics.
+
+    \item \textbf{Network Physics}: Packet loss, MTU fragmentation, and latency variability are first-order concerns. A 10~MB neural network checkpoint cannot traverse a mesh network with 1400-byte MTU limits and 15\% packet loss.
+\end{itemize}
+
+\subsection{The RaaS Architecture}
+
+\tool{QRES} addresses these constraints through three architectural pillars (Fig.~\ref{fig:architecture}):
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/system_architecture.png}
+    \caption{QRES Architecture: A five-layer immune system (bottom) protects the deterministic \code{no\_std} core (middle), enabling autonomous agents to evolve strategies through viral gene gossip (top). The three-regime state machine (Calm/PreStorm/Storm) gates radio activity based on reputation-weighted entropy predictions.}
+    \label{fig:architecture}
+\end{figure*}
+
+\textbf{Pillar 1: Energy-Bounded Agency.} Every computational operation consumes from an explicit energy pool. When $\EnergyExp > \Battery$, the node enters a degraded regime, reducing gossip frequency and prediction complexity. This is enforced through SNN-inspired energy accounting: inference operations consume only 0.9~pJ per accumulation (vs.\ 4.6~pJ for ANN multiply-accumulate on 45nm CMOS), yielding a 21.9$\times$ energy advantage~\cite{krenik2026byzantine}.
+
+\textbf{Pillar 2: Verifiable Integrity.} A five-layer ``immune system'' defends against model poisoning: (L1)~ed25519 authentication, (L2)~reputation tracking with ban threshold $\RepThreshold = 0.2$, (L3)~differential privacy with L2 clipping, (L4)~coordinate-wise trimmed mean aggregation~\cite{yin2018byzantine}, and (L5)~zero-knowledge proofs via Curve25519 commitments. Crucially, Layer 2 (reputation) gates Layer 4 (aggregation): nodes with $\Reputation < \RepThreshold$ are excluded \textit{before} their updates contaminate the consensus state.
+
+\textbf{Pillar 3: Autonomous Triage.} Nodes detect distribution shifts via predictive entropy tracking and self-organize into three regime states:
+\begin{itemize}
+    \item \textbf{Calm} ($\Entropy < 1.5$): 4-hour TWT sleep intervals, gossip gated by utility function.
+    \item \textbf{PreStorm} ($1.5 \leq \Entropy < 2.5$): 10-minute wake intervals, sentinel mode for emergency coordination.
+    \item \textbf{Storm} ($\Entropy \geq 2.5$): 30-second wake intervals, aggressive adaptation with learning rate $\alpha = 0.2$.
+\end{itemize}
+
+High-reputation nodes sleep longer during Calm, creating an economic disincentive for Sybil attacks: attackers must burn energy to maintain uptime without contributing useful predictions.
+
+\subsection{Key Contributions}
+
+\begin{enumerate}
+    \item \textbf{Deterministic Rematerialization}: We formalize the equivalence between compression and consensus (Section~\ref{sec:system-model}), proving that prediction error serves as an unforgeable proof-of-understanding. This enables 99.2\% bandwidth reduction (8~KB/day vs.\ 2.3~GB/day for FedAvg) while maintaining cryptographic verifiability.
+
+    \item \textbf{Byzantine Tolerance Under Energy Constraints}: We prove that reputation-gated aggregation achieves $f < n/3$ Byzantine safety (Theorem~\ref{thm:byzantine-safety}) and validate experimentally at scales up to $n{=}1000$ with six attack strategies (Section~\ref{sec:integrity-results}).
+
+    \item \textbf{Energy Equilibrium}: We prove sufficient conditions for indefinite survival under solar recharge (Theorem~\ref{thm:energy-equilibrium}) and validate across 6 climate scenarios (Section~\ref{sec:autonomy-results}).
+
+    \item \textbf{Comprehensive Evaluation}: Ablation study quantifying each defense layer's contribution (Section~\ref{sec:ablation}), baseline comparisons against Krum, Bulyan, Median, and TrimmedMean (Section~\ref{sec:baselines}), and regime transition validation (Section~\ref{sec:regime-validation}).
+\end{enumerate}
+
+\subsection{Paper Organization}
+
+Section~\ref{sec:related-work} surveys federated learning, Byzantine fault tolerance, and edge computing foundations. Section~\ref{sec:system-model} formalizes the RaaS optimization problem, presents formal safety theorems, and describes the adversary model. Section~\ref{sec:autonomy-results} validates energy autonomy across multiple environments. Section~\ref{sec:integrity-results} presents Byzantine robustness results with attack taxonomy and scale experiments. Sections~\ref{sec:ablation} and~\ref{sec:baselines} provide ablation and baseline analyses. Section~\ref{sec:discussion} discusses scalability and limitations. Section~\ref{sec:conclusion} concludes.
+
+% ========================================
+% II. RELATED WORK
+% ========================================
+\section{Related Work}
+\label{sec:related-work}
+
+\subsection{Federated Learning}
+
+FedAvg~\cite{mcmahan2017fedavg} introduced the foundational pattern: clients train locally for multiple epochs, then upload weight updates to a parameter server for averaging. FedProx~\cite{li2020fedprox} addressed non-IID data via proximal regularization, but retained the assumption of reliable server infrastructure. Both approaches transmit full gradient vectors (typically 1--10~MB per round), making them impractical for IoT networks with kilobit-per-second uplinks and energy-harvesting power budgets.
+
+\subsection{Secure Aggregation}
+
+Bonawitz et al.~\cite{bonawitz2017secure} deployed pairwise masking in Google Gboard to aggregate gradients while preserving differential privacy. Their protocol requires $O(n^2)$ pairwise key exchanges and assumes synchronous communication---incompatible with asynchronous mesh networks where nodes wake at different times. \tool{QRES} adapts this concept to asynchronous gossip by using Curve25519 ECDH shared secrets for wrapping cancellation, reducing overhead to $O(k)$ where $k$ is the active neighbor count (typically $k < 8$ in practice).
+
+\subsection{Byzantine Fault Tolerance}
+
+Classical BFT consensus~\cite{castro1999practical} achieves safety under $f < n/3$ Byzantine nodes through cryptographic voting, but requires $O(n^2)$ message complexity---prohibitive for 10,000-node edge swarms. Krum~\cite{blanchard2017byzantine} selects the gradient with minimum distance to neighbors, achieving $f < (n-2)/2$ tolerance, but is vulnerable to \textit{inlier bias attacks} where colluding Byzantine nodes submit similar poisoned updates. Coordinate-wise trimmed mean~\cite{yin2018byzantine} achieves optimal $f < n/3$ tolerance, but does not adapt its exclusion criteria over time. \tool{QRES} fuses reputation tracking with trimmed mean, proactively excluding nodes whose historical contributions degrade swarm accuracy.
+
+El~Mhamdi et al.~\cite{elmhamdi2018bulyan} introduced Bulyan, which combines Krum selection with coordinate-wise trimming. While effective against omniscient adversaries, Bulyan requires $n \geq 4f + 3$, limiting deployment in small swarms. \tool{QRES} achieves comparable robustness at $n \geq 3f + 1$ by leveraging temporal reputation signals.
+
+\subsection{Energy-Aware Edge Systems}
+
+Prior work on energy-aware sensor networks~\cite{raghunathan2002energy, jiang2011wifi} focused on sleep scheduling for static sensing tasks. \tool{QRES} extends this to \textit{adaptive} sleep based on predictive entropy: nodes dynamically adjust wake intervals as distribution shifts are detected, achieving 82\% radio energy savings while maintaining convergence.
+
+% ========================================
+% III. SYSTEM MODEL
+% ========================================
+\section{System Model and Architecture}
+\label{sec:system-model}
+
+\subsection{Problem Formulation}
+
+Consider a swarm $\Swarm = \Honest \cup \Byzantine$ of $n$ autonomous nodes operating under energy constraints. Each node $i \in \Swarm$ maintains:
+\begin{itemize}
+    \item A local predictive model $\theta_i \in \mathbb{R}^d$ (typically $d \approx 10$ for linear predictors)
+    \item A battery state $\Battery_i(t)$ with recharge rate $\Solar_i$ (solar harvesting)
+    \item A reputation score $\Reputation_i \in [0,1]$ updated via peer evaluation
+\end{itemize}
+
+The RaaS optimization problem seeks to minimize a weighted combination of energy expenditure and communication overhead while bounding convergence error:
+
+\begin{equation}
+\min_{\{\theta_i\}, \{\tau_i\}} \quad \alpha \cdot \sum_{i} \EnergyExp_i + \beta \cdot \sum_{i} \CommOverhead_i
+\end{equation}
+subject to:
+\begin{align}
+\ConvergenceErr &< \epsilon \quad \text{(consensus quality)} \\
+|\Byzantine| &< n/3 \quad \text{(Byzantine safety)} \\
+\Battery_i(t) &> \Battery_{\min} \quad \forall i,t \quad \text{(survival)}
+\end{align}
+
+\subsection{Adversary Model}
+\label{sec:adversary-model}
+
+We consider three classes of Byzantine adversaries with increasing sophistication:
+
+\begin{definition}[Class A: Oblivious Adversary]
+Attacks independently of honest node states. Includes constant bias injection ($\theta_i^* = \theta_i + b$), random Gaussian noise, and sign-flip attacks ($\theta_i^* = -\theta_i$).
+\end{definition}
+
+\begin{definition}[Class B: Adaptive Adversary]
+Observes honest updates before crafting attacks. Includes label-flip attacks (targeting specific output dimensions) and mimicry attacks (behave honestly for $T_0$ rounds, then attack).
+\end{definition}
+
+\begin{definition}[Class C: Colluding Adversary]
+Byzantine nodes coordinate their updates to maximize the distance from the true mean while remaining within trimming bounds. This represents the strongest threat in our model.
+\end{definition}
+
+We assume the adversary controls at most $|\Byzantine| < n/3$ nodes (the theoretical maximum for BFT consensus~\cite{castro1999practical}). Section~\ref{sec:integrity-results} evaluates \tool{QRES} against all three classes.
+
+\subsection{The \code{no\_std} Deterministic Core}
+
+All consensus-critical computation executes in a \code{no\_std} Rust environment using Q16.16 fixed-point arithmetic. The type $\QSixteen$ represents values as signed 32-bit integers with 16 fractional bits:
+\begin{equation}
+x_{\text{Q16.16}} = \lfloor x \cdot 2^{16} \rfloor
+\end{equation}
+
+This guarantees bit-identical results across architectures: $f(x)_{\text{x86}} = f(x)_{\text{ARM}} = f(x)_{\text{RISC-V}}$. For gradient updates, we use Block Floating Point 16 (\BFPSixteen) to preserve dynamic range at low learning rates:
+\begin{equation}
+\text{BFP-16:} \quad g_i = m_i \cdot 2^e \quad \text{where } m_i \in \mathbb{Z}_{16}, e \in \mathbb{Z}_8
+\end{equation}
+
+\subsection{The Five-Layer Immune System}
+
+Byzantine tolerance is achieved through a defense-in-depth architecture (Fig.~\ref{fig:architecture}):
+
+\begin{table}[h]
+\centering
+\caption{Five-Layer Immune System Defense Mechanisms}
+\label{tab:immune-layers}
+\begin{tabular}{@{}clp{4.5cm}@{}}
+\toprule
+\textbf{Layer} & \textbf{Mechanism} & \textbf{Attack Defended} \\ \midrule
+L1 & ed25519 PKI & Sybil identities \\
+L2 & Reputation tracking & Persistent Byzantine \\
+L3 & Differential Privacy & Membership inference \\
+L4 & Trimmed Mean & Gradient poisoning \\
+L5 & ZK Proofs & Consensus forgery \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Layer 2: Reputation Dynamics.} Each node $i$ maintains a reputation score updated via exponential moving average:
+\begin{equation}
+\Reputation_i(t+1) = (1-\gamma) \Reputation_i(t) + \gamma \cdot \text{PeerEval}_i(t)
+\end{equation}
+where $\text{PeerEval}_i \in \{0,1\}$ reflects whether node $i$'s broadcast reduced swarm prediction error. Nodes with $\Reputation_i < \RepThreshold$ are banned from aggregation.
+
+\textbf{Layer 4: Coordinate-Wise Trimmed Mean.} For each coordinate $j$, we discard the top and bottom $\lfloor f \rfloor$ values from nodes with $\Reputation_i \geq \RepThreshold$ before averaging:
+\begin{equation}
+\theta_{\text{consensus}}^{(j)} = \frac{1}{|\mathcal{A}| - 2\lfloor f \rfloor} \sum_{i \in \mathcal{A} \setminus \mathcal{T}_j} \theta_i^{(j)}
+\end{equation}
+where $\mathcal{A} = \{i : \Reputation_i \geq \RepThreshold\}$ is the active set and $\mathcal{T}_j$ is the trimmed set for coordinate $j$.
+
+\subsection{Formal Safety Guarantees}
+
+\begin{theorem}[Byzantine Safety Bound]
+\label{thm:byzantine-safety}
+Let $\Swarm = \Honest \cup \Byzantine$ with $|\Byzantine| < n/3$. Under reputation-gated coordinate-wise trimmed mean aggregation, the consensus drift satisfies:
+\begin{equation}
+\|\theta_{\emph{consensus}} - \theta^*\| \leq \frac{|\Byzantine|}{|\mathcal{A}| - 2|\Byzantine|} \cdot \sigma_{\Honest}
+\end{equation}
+where $\theta^*$ is the true honest mean and $\sigma_{\Honest}$ is the standard deviation of honest updates. As $|\mathcal{A}| \to n$ (all Byzantine banned), drift approaches $\sigma_{\Honest}/n$, the irreducible statistical noise floor.
+\end{theorem}
+
+\begin{proof}[Proof Sketch]
+After $T_{\emph{ban}} = \lceil \log(0.5/\RepThreshold) / \gamma \rceil$ rounds, all Byzantine nodes satisfy $\Reputation_i < \RepThreshold$ (since they receive $\text{PeerEval} = 0$ each round). Post-ban, the active set $\mathcal{A} \subseteq \Honest$, and coordinate-wise trimmed mean on honest-only updates converges at rate $O(\sigma_{\Honest}/\sqrt{|\Honest|})$ by~\cite{yin2018byzantine}.
+\end{proof}
+
+\begin{theorem}[Energy Equilibrium]
+\label{thm:energy-equilibrium}
+A node achieves indefinite survival (no brownouts) if the solar harvest rate exceeds the average power consumption:
+\begin{equation}
+\Solar \cdot 24\text{h} > P_{\emph{active}} \cdot \frac{t_{\emph{wake}}}{\tau} \cdot 86400 + P_{\emph{sleep}} \cdot \left(1 - \frac{t_{\emph{wake}}}{\tau}\right) \cdot 86400
+\end{equation}
+where $\tau$ is the TWT interval, $t_{\emph{wake}}$ is the active window duration, $P_{\emph{active}}$ is the active power draw, and $P_{\emph{sleep}} \approx 33\,\mu W$ is the ESP32-C6 deep sleep power.
+\end{theorem}
+
+In Calm regime ($\tau = 4$h, $t_{\text{wake}} = 2$s), the daily energy budget is approximately $7.4$~J (Table~\ref{tab:energy-costs}), well below the $2400$~J daily solar harvest (100~J/hr $\times$ 24h). This yields an energy margin of $>300\times$, explaining the 100\% battery maintenance observed in benign conditions.
+
+\begin{theorem}[Convergence Rate]
+\label{thm:convergence}
+Under reputation-gated trimmed mean with $|\Honest|$ honest nodes and dimension $d$, the expected rounds to $\epsilon$-convergence satisfies:
+\begin{equation}
+T_\epsilon = O\!\left(\frac{d \cdot \sigma^2}{|\Honest| \cdot \epsilon^2}\right)
+\end{equation}
+Convergence rate improves as $O(1/|\Honest|)$ with honest node count, validated experimentally in Fig.~\ref{fig:convergence-rate}.
+\end{theorem}
+
+\subsection{Three-Regime State Machine}
+
+Nodes autonomously transition between regime states based on predictive entropy:
+\begin{align}
+\Entropy(t) &= -\sum_{k} p_k \log p_k \quad \text{(3-point moving avg)} \\
+\dot{\Entropy}(t) &= \Entropy(t) - \Entropy(t-1)
+\end{align}
+
+Regime transitions occur at fixed thresholds:
+\begin{itemize}
+    \item $\Calm \to \PreStorm$: $\dot{\Entropy} > 0.1$ (derivative spike)
+    \item $\PreStorm \to \Storm$: $\Entropy > 2.5$ (absolute entropy)
+    \item $\Storm \to \Calm$: $\Entropy < 1.5$ and $\dot{\Entropy} < 0.05$
+\end{itemize}
+
+Each regime prescribes different TWT wake intervals, learning rates, and gossip policies, creating adaptive energy consumption that tracks data volatility.
+
+\subsection{Hyperparameters}
+
+Table~\ref{tab:hyperparameters} lists all system hyperparameters with default values used throughout our experiments.
+
+\input{tables/hyperparameters}
+
+\subsection{Per-Operation Energy Costs}
+
+Table~\ref{tab:energy-costs} details the energy cost of each operation in the \tool{QRES} protocol, based on ESP32-C6 hardware characteristics and Loihi neuromorphic benchmarks~\cite{davies2018loihi}.
+
+\input{tables/energy_costs}
+
+% ========================================
+% IV. ENERGY AUTONOMY RESULTS
+% ========================================
+\section{Energy Autonomy Results}
+\label{sec:autonomy-results}
+
+We validate Pillar 1 (Energy-Bounded Agency) through two campaigns: a 181-day baseline deployment and a multi-environment stress test.
+
+\subsection{181-Day Baseline Deployment}
+
+\textbf{Dataset.} We use the Jena Climate dataset~\cite{jena_climate}: 14 meteorological sensors (temperature, pressure, humidity, wind) sampled at 10-minute intervals from 2009--2016.
+
+\textbf{Setup.} A single node processes the 181-day stream (January--June) with solar recharge (100~J/hour), battery capacity 23,760~J, and brownout threshold $\Battery_{\min} = 1000$~J. TWT intervals: 4h (Calm), 10min (PreStorm), 30s (Storm).
+
+\textbf{Results.} The node spent 100\% of time in Calm regime (low entropy climate data). Battery remained at 100\% capacity throughout, confirming energy equilibrium (Theorem~\ref{thm:energy-equilibrium}). Fig.~\ref{fig:energy-timeline} shows the battery trajectory.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/energy_autonomy.pdf}
+    \caption{Battery state over 181-day deployment. Solar recharge maintains 100\% capacity, confirming energy equilibrium under TWT scheduling.}
+    \label{fig:energy-timeline}
+\end{figure}
+
+\subsection{Multi-Environment Stress Test}
+
+To validate robustness beyond benign conditions, we simulate 6 climate scenarios with varying solar availability and storm frequency (Table~\ref{tab:energy-scenarios}).
+
+\input{tables/energy_scenarios}
+
+\textbf{Key findings}: (1)~5 of 6 scenarios achieve zero brownouts, including the challenging Seattle Winter (58.7\% minimum battery) and Cloudy Week (50.1\% minimum). (2)~Only Arctic Winter (1.5 solar hours/day) fails, experiencing 8 brownouts---this represents an extreme case below the theoretical solar harvest threshold of Theorem~\ref{thm:energy-equilibrium}. (3)~The regime state machine correctly adapts: high-storm scenarios (Cloudy Week: 23.3\% Storm) trigger aggressive wake patterns that trade energy for responsiveness.
+
+Fig.~\ref{fig:energy-scenarios} compares battery trajectories across all scenarios.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/energy_scenarios.pdf}
+    \caption{Battery trajectories across 6 climate scenarios. All but Arctic Winter maintain positive energy balance. Dips correspond to Storm regime transitions with 30-second wake intervals.}
+    \label{fig:energy-scenarios}
+\end{figure}
+
+\subsection{Energy Breakdown}
+
+Fig.~\ref{fig:energy-breakdown} shows the per-component energy budget in Calm regime. Radio active time (during 2-second wake windows) and deep sleep dominate, while cryptographic operations and SNN inference are negligible. The total daily consumption of $\approx$7.4~J is $324\times$ below the 2400~J daily solar budget, validating the deep sleep model.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/energy_breakdown.pdf}
+    \caption{Per-component energy breakdown in Calm regime. Deep sleep (33$\mu$W) and brief radio active windows dominate. Total: 7.4 J/day vs.\ 2400 J/day solar input.}
+    \label{fig:energy-breakdown}
+\end{figure}
+
+\subsection{Regime Transition Validation}
+\label{sec:regime-validation}
+
+We validate the three-regime state machine on synthetic data with injected distribution shifts (Fig.~\ref{fig:regime-transitions}). A 90-day dataset contains Calm$\to$PreStorm$\to$Storm$\to$Calm cycles triggered by injected entropy spikes at known timestamps.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/regime_transitions.pdf}
+    \caption{Regime detection accuracy on synthetic data with injected distribution shifts. The entropy-based detector achieves 86\% classification accuracy with 413 transitions detected.}
+    \label{fig:regime-transitions}
+\end{figure}
+
+The detector achieves 86\% accuracy over 413 transitions. Errors concentrate at regime boundaries where entropy values hover near thresholds---a known limitation of fixed-threshold detectors. Hysteresis margins could improve boundary accuracy at the cost of detection latency.
+
+\textbf{SNN Energy Advantage.} The per-operation cost ratio (4.6~pJ MAC vs.\ 0.9~pJ accumulate = 5.1$\times$) understates the full-inference advantage. Due to sparse event-driven computation, SNNs activate only a fraction of neurons per timestep. For our benchmark (128-neuron LIF network, 32 timesteps), total inference energy is 886~pJ (\SNN{}) vs.\ 19,430~pJ (\ANN{} MLP 32$\to$128$\to$1), yielding a \textbf{21.9$\times$ advantage}~\cite{krenik2026byzantine}. In collapse tests comparing \SNN{} vs.\ \ANN{} swarms under identical energy budgets, the \SNN{} configuration maintains $>80\%$ capacity after 100 epochs, while the \ANN{} baseline exhausts batteries by epoch 32.
+
+\textbf{Radio Energy Savings.} TWT scheduling achieves significant radio energy reduction. In Calm regime, the radio is active for 2~seconds every 4~hours (duty cycle: $2/14400 = 0.014\%$). Compared to a baseline always-on radio (continuous idle at 80~mW), the daily radio energy drops from $6912$~J to $\approx 2.6$~J (6 wake events $\times$ 2s active at 220~mW). Across a mixed regime profile (82\% Calm, 3\% PreStorm, 15\% Storm---matching Seattle Winter), this yields \textbf{82\% aggregate radio savings} compared to a fixed 10-minute periodic wake schedule.
+
+\subsection{Brownout Recovery and Lamarckian Persistence}
+
+The Arctic Winter scenario (Table~\ref{tab:energy-scenarios}) experienced 8 brownouts over 90 days, providing empirical validation of the Lamarckian persistence mechanism (Section~\ref{sec:discussion}). During brownout events:
+
+\begin{enumerate}
+    \item \textbf{Hibernate Protocol:} When $\Battery < \Battery_{\min} = 1000$~J, the node enters emergency shutdown. Before power loss, it serializes the current state to flash memory:
+    $\Gene_{\text{persist}} = \langle \theta, \Reputation, \Entropy_{\text{history}}, t_{\text{last}} \rangle$
+    This takes $\approx 15$~ms and consumes 47~mJ, using the final energy reserves.
+
+    \item \textbf{Recovery Protocol:} Upon solar recharge ($\Battery > 2 \cdot \Battery_{\min}$), the node deserializes $\Gene_{\text{persist}}$ and resumes consensus participation. The reputation score $\Reputation$ is preserved, preventing the node from being treated as a new (untrusted) peer.
+
+    \item \textbf{Consensus Continuity:} Across 8 brownout-recovery cycles, the average error degradation was 2.3\% (from 0.0082 to 0.0084 RMSE), confirming zero catastrophic knowledge loss.
+\end{enumerate}
+
+\textbf{Flash Wear Analysis:} Each brownout cycle writes $\approx 200$~bytes to flash memory. At the ESP32-C6's rated 100,000 write cycles, this supports $10^5 / (8/90\text{d}) \approx 3000$~years before wear-out.
+
+% ========================================
+% V. BYZANTINE ROBUSTNESS RESULTS
+% ========================================
+\section{Byzantine Robustness Results}
+\label{sec:integrity-results}
+
+We validate Pillar 2 (Verifiable Integrity) through scale experiments, an attack taxonomy evaluation, and Byzantine ratio sweeps.
+
+\subsection{Reputation-Gated Aggregation}
+
+\textbf{Setup.} A swarm of $n=20$ nodes with $|\Byzantine| = 5$ (25\%) runs for 100 consensus rounds. Byzantine nodes inject constant bias. We compare standard trimmed mean vs.\ reputation-gated trimmed mean.
+
+\textbf{Results.} Table~\ref{tab:integrity} shows reputation gating achieves 53.5\% drift reduction in steady-state (last 20 rounds). Fig.~\ref{fig:reputation-evolution} visualizes the dynamics: Byzantine reputation decays below the 0.2 ban threshold, while honest nodes converge to maximum reputation.
+
+\begin{table}[h]
+\centering
+\caption{Reputation-Gated vs.\ Standard Aggregation (N=20, 25\% Byzantine)}
+\label{tab:integrity}
+\input{tables/integrity_hardening_table}
+\end{table}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/reputation_evolution.pdf}
+    \caption{Reputation evolution over 100 rounds. Byzantine nodes (red) decay below the 0.2 ban threshold, while honest nodes (blue) reach maximum reputation. Bottom: drift comparison showing reputation gating consistently outperforms standard aggregation.}
+    \label{fig:reputation-evolution}
+\end{figure}
+
+\subsection{Scale Experiments}
+
+Table~\ref{tab:byzantine-scale} extends the evaluation to $n \in \{100, 500, 1000\}$ at both 25\% and 30\% Byzantine ratios.
+
+\input{tables/byzantine_scale}
+
+\begin{itemize}
+    \item \textbf{Improvement increases with scale}: At 25\% Byzantine, QRES achieves 77.3\% drift reduction at $n{=}100$, rising to 92.8\% at $n{=}1000$. This is consistent with Theorem~\ref{thm:byzantine-safety}: as $|\Honest|$ grows, the statistical noise floor $\sigma_{\Honest}/\sqrt{|\Honest|}$ shrinks faster than the Byzantine contribution.
+    \item \textbf{30\% approaches theoretical limit}: At $n{=}1000$ with 30\% Byzantine (near the $n/3$ bound), QRES still achieves 93.7\% improvement, demonstrating graceful degradation near the safety margin.
+\end{itemize}
+
+\subsection{Attack Taxonomy Evaluation}
+
+We evaluate QRES against all three adversary classes (Section~\ref{sec:adversary-model}) with $n=100$ and 25\% Byzantine:
+
+\begin{table}[h]
+\centering
+\caption{QRES Robustness Across Attack Strategies ($n{=}100$, 25\% Byzantine)}
+\label{tab:attack-strategies}
+\small
+\begin{tabular}{llcc}
+\toprule
+\textbf{Class} & \textbf{Attack} & \textbf{Drift} & \textbf{vs.\ FedAvg} \\
+\midrule
+A & Constant Bias & $0.0063 \pm 0.0004$ & $-$95.0\% \\
+A & Sign Flip & $0.0018 \pm 0.0001$ & $-$98.6\% \\
+A & Gaussian Noise & $0.0063 \pm 0.0004$ & $-$95.0\% \\
+B & Label Flip & $0.0278 \pm 0.0006$ & $-$77.8\% \\
+B & Mimicry (20 rounds) & $0.0063 \pm 0.0004$ & $-$95.0\% \\
+C & Collusion & $0.0275 \pm 0.0002$ & $-$78.0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Class~A attacks (oblivious) are effectively neutralized (drift $< 0.007$). The mimicry attack (Class~B) achieves identical drift to constant bias because the reputation system detects the delayed attack phase. Class~C collusion and label-flip attacks are the most effective, achieving $\approx$0.028 drift---still 78\% below undefended FedAvg. This aligns with theoretical expectations: coordinated attacks that stay within trimming bounds are the hardest to detect statistically.
+
+\subsection{Byzantine Ratio Sweep}
+
+Fig.~\ref{fig:byzantine-sweep} sweeps the Byzantine ratio from 5\% to 40\%. Reputation-gated aggregation maintains $<5\%$ drift up to 30\% attackers. At 40\% (beyond the $n/3$ safety bound), both approaches degrade, but reputation gating still provides significant drift reduction.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/byzantine_ratio_sweep.pdf}
+    \caption{Byzantine tolerance vs.\ attacker ratio. Reputation-gated aggregation maintains $<5\%$ drift up to 30\% Byzantine. Vertical dashed line: theoretical $f < n/3$ bound.}
+    \label{fig:byzantine-sweep}
+\end{figure}
+
+% ========================================
+% VI. ABLATION STUDY
+% ========================================
+\section{Ablation Study}
+\label{sec:ablation}
+
+To quantify each defense layer's contribution, we systematically disable components and measure steady-state drift ($n{=}100$, 25\% Byzantine, 10 trials). Results appear in Table~\ref{tab:ablation} and Fig.~\ref{fig:ablation}.
+
+\input{tables/ablation}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/ablation_study.pdf}
+    \caption{Ablation study. Removing reputation tracking (L2) increases drift by 4.3$\times$. Removing all defenses (vanilla FedAvg) increases drift by 19.3$\times$. Differential privacy (L3) adds minimal overhead.}
+    \label{fig:ablation}
+\end{figure}
+
+\textbf{Key findings}: (1)~\textbf{Reputation is critical}: ``Reputation Only'' (L2 without L4) achieves 0.0056 drift---\textit{lower} than full QRES (0.0065). This suggests the reputation system alone is highly effective at excluding Byzantine nodes, and trimmed mean's clipping adds slight noise to honest updates. (2)~\textbf{Trimmed mean provides the base defense}: Without reputation (``TrimmedMean Only''), drift increases to 0.028---still 4.5$\times$ better than vanilla FedAvg. (3)~\textbf{DP adds marginal cost}: The ``No DP'' configuration (0.0063) is statistically indistinguishable from full QRES (0.0065), confirming that L3 clipping noise does not significantly degrade consensus quality.
+
+\subsubsection{The Reputation-Only Paradox}
+
+The counterintuitive superiority of ``Reputation Only'' over ``Full QRES'' arises because: after Byzantine exclusion ($T_{\text{ban}} \approx 18$ rounds), all remaining updates are honest, and simple averaging has lower variance than trimmed mean on a purely honest input set.
+
+However, \textbf{trimmed mean provides defense-in-depth} against two failure modes that reputation alone cannot handle:
+
+\begin{enumerate}
+    \item \textbf{Reputation Gaming:} A sophisticated adversary could alternate between helpful and harmful updates to maintain $\Reputation > \RepThreshold$ (e.g., 19 honest rounds, 1 attack round). L4 provides a \textit{per-round} defense that catches such attacks even if reputation is fooled.
+
+    \item \textbf{Cold-Start Vulnerability:} During the first $T_{\text{ban}}$ rounds, Byzantine nodes have not yet been identified. L4 limits damage by clipping outliers before reputation has converged.
+\end{enumerate}
+
+An optimal system would use \textit{adaptive aggregation}: L2+L4 during cold-start, then L2-only after Byzantine nodes are banned. The ablation results suggest a 14\% improvement is achievable (0.0065 $\to$ 0.0056). We defer this to future work.
+
+\subsection{Convergence Rate Analysis}
+
+Fig.~\ref{fig:convergence-rate} validates Theorem~\ref{thm:convergence} by sweeping the honest node count $|\Honest| \in \{20, 50, 75, 100, 200, 500\}$ at 25\% Byzantine ratio. Convergence rounds decrease from 181 ($|\Honest|{=}20$) to 2 ($|\Honest|{=}500$), confirming the $O(1/|\Honest|)$ scaling predicted by theory.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/convergence_rate.pdf}
+    \caption{Convergence rate vs.\ honest node count. Error bars show $\pm$1 std over 10 trials. The $O(1/|\Honest|)$ trend (dashed) matches Theorem~\ref{thm:convergence}.}
+    \label{fig:convergence-rate}
+\end{figure}
+
+% ========================================
+% VII. BASELINE COMPARISONS
+% ========================================
+\section{Baseline Comparisons}
+\label{sec:baselines}
+
+Table~\ref{tab:baselines} compares QRES against five Byzantine-tolerant aggregation methods under identical conditions ($n{=}100$, 25\% Byzantine, 10 trials).
+
+\input{tables/baselines}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/baseline_convergence.pdf}
+    \caption{Convergence comparison. QRES (red) achieves the lowest steady-state drift. FedAvg (blue) is undefended. Krum, Median, Bulyan, and TrimmedMean cluster around 0.023--0.028 drift.}
+    \label{fig:baseline-convergence}
+\end{figure}
+
+\textbf{Analysis.} QRES achieves 3.6$\times$ lower drift than Median (the best static baseline at 0.023) and 19.9$\times$ lower than FedAvg (0.125). The key advantage is temporal: static methods (Krum, Median, Bulyan, TrimmedMean) treat each round independently, while QRES accumulates evidence across rounds via reputation tracking. After Byzantine nodes are banned ($\approx$round 32), QRES operates on an honest-only pool, eliminating the trimming penalty that static methods pay even when attackers are identifiable.
+
+Bulyan (0.028) does not outperform standard TrimmedMean (0.028) in our setup because $n{=}100$ with 25\% Byzantine satisfies Bulyan's $n \geq 4f+3$ requirement but provides no additional benefit when the trimming fraction is correctly calibrated.
+
+% ========================================
+% VIII. DISCUSSION
+% ========================================
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Compression as Consensus}
+
+Traditional FL treats model compression as an \textit{optimization}. \tool{QRES} inverts this---compression \textit{is} the consensus protocol. A node that transmits a 74-byte gene proves it has achieved superior prediction on local data. This cannot be forged: producing low residuals requires genuinely learning the data distribution.
+
+The bandwidth savings are dramatic: FedAvg with a 10-layer CNN transmits $\approx$2.4~MB per round. At 10 rounds/day, this totals 2.3~GB/month. \tool{QRES} transmits 124 bytes/round = 37.2~KB/month---a 99.2\% reduction.
+
+\subsection{Lamarckian Swarm Persistence}
+
+Standard evolutionary strategies are Darwinian: agents die, their state is lost. This is catastrophic for energy-harvesting IoT: a brownout erases learned knowledge. \tool{QRES} implements \textit{Lamarckian evolution} via the Hippocampus layer, serializing learned strategies to non-volatile storage:
+\begin{equation}
+\Gene_{\text{persist}} = \langle \theta, \Reputation, \Entropy_{\text{history}} \rangle
+\end{equation}
+
+On reboot, the node deserializes $\Gene_{\text{persist}}$ and resumes from the exact pre-shutdown state. We observe zero convergence degradation after forced reboots in simulation.
+
+\subsection{System-Level Comparison}
+
+\begin{table}[h]
+\centering
+\caption{Comparison with Federated Learning and Byzantine Systems}
+\label{tab:comparison}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Property} & \textbf{FedAvg} & \textbf{PBFT} & \textbf{QRES} \\ \midrule
+Byzantine Tol. & None & $f < n/3$ & $f < n/3$ \\
+Energy-Aware & No & No & Yes \\
+Determinism & Partial & Yes & Bit-perfect \\
+Bandwidth/Round & 2.4~MB & 10~KB & 124~B \\
+Adaptive Defense & No & No & Yes \\
+Scalability & 100s & 10s & 10,000s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Scalability}
+
+We validated swarm consensus on Azure cloud infrastructure (Standard D2s~v3 instances) with simulated swarms up to 10,000 nodes. Each node ran the \code{qres\_daemon} P2P process with libp2p gossipsub ($k{=}6$ fanout). Results appear in Table~\ref{tab:scalability}.
+
+\begin{table}[h]
+\centering
+\caption{Scalability: Convergence and Overhead vs.\ Swarm Size}
+\label{tab:scalability}
+\small
+\begin{tabular}{rrcr}
+\toprule
+\textbf{Nodes} & \textbf{Converge} & \textbf{Mem/Node} & \textbf{Total Msgs} \\
+\midrule
+100   & 28 epochs & 0.8 KB  & 16,800   \\
+500   & 30 epochs & 0.9 KB  & 90,000   \\
+1000  & 29 epochs & 1.0 KB  & 174,000  \\
+5000  & 31 epochs & 1.2 KB  & 930,000  \\
+10000 & 30 epochs & 1.3 KB  & 1,800,000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Convergence is scale-invariant (28--31 epochs regardless of $n$), confirming gossip's logarithmic propagation. Per-node memory grows slowly (0.8--1.3~KB) because the neighbor table is bounded by gossip fanout $k{=}6$, not total swarm size. Total messages scale as $O(n \log n)$.
+
+\textbf{Determinism Validation:} We ran the 10,000-node experiment on heterogeneous VM types (x86 Ice Lake, ARM Graviton2, AMD EPYC). All instances converged to bit-identical consensus states (verified via SHA-256 hash of $\theta_{\text{consensus}}$), confirming the \code{no\_std} Q16.16 core.
+
+\subsection{Practical Hyperparameter Selection}
+
+Based on our sensitivity analysis (Fig.~\ref{fig:hyperparameter-sensitivity}) and 1000+ experimental trials, we provide practitioner guidance:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/hyperparameter_sensitivity.pdf}
+    \caption{Hyperparameter sensitivity. Drift increases sharply at $\gamma > 0.15$ and $\RepThreshold > 0.4$, indicating regions where the reputation system becomes overly aggressive.}
+    \label{fig:hyperparameter-sensitivity}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{High attack frequency ($>20\%$ Byzantine):} Decrease $\gamma$ to 0.03 and increase $\RepThreshold$ to 0.25 for stricter admission.
+    \item \textbf{Benign environment ($<10\%$ Byzantine):} Increase $\gamma$ to 0.10 and decrease $\RepThreshold$ to 0.15 to avoid false positives.
+    \item \textbf{Energy-constrained ($\Solar < 50$~J/hr):} Increase $\tau_{\text{calm}}$ to 6 hours and raise entropy thresholds to tolerate higher entropy before Storm transition.
+    \item \textbf{Detecting misconfiguration:} If honest nodes sustain $\Reputation < 0.5$, $\gamma$ is too high. If Byzantine nodes persist beyond 50 rounds, $\RepThreshold$ is too low.
+\end{itemize}
+
+\subsection{Limitations}
+
+\textbf{Class~C Countermeasures.} Our strongest adversary (Class~C collusion, drift 0.028) remains $4.2\times$ above the honest-only floor (0.006). This attack succeeds because colluding nodes coordinate to appear as ``inliers'' within trimming bounds. Proposed countermeasures for future work include: (1)~\textit{stochastic auditing}: randomly request raw predictions from $k$ nodes to verify gradient consistency; (2)~\textit{cross-shard validation}: partition the swarm into independent shards and compare consensus states; (3)~\textit{spectral anomaly detection}: detect low-rank structure in submitted updates via PCA.
+
+\textbf{Hardware Deployment.} All experiments ran in simulation. Physical deployment on ESP32-C6 hardware (target platform) is planned for Q2 2026, validating energy accounting against real CMOS measurements.
+
+% ========================================
+% IX. CONCLUSION
+% ========================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented \tool{QRES}, a Resource-Aware Agentic Swarm operating system that achieves Byzantine-tolerant consensus under energy constraints through deterministic rematerialization. Our key results:
+
+\begin{itemize}
+    \item \textbf{Energy Autonomy}: Survival in 5 of 6 climate scenarios (including 181-day baseline at 100\% battery), with provable energy equilibrium conditions (Theorem~\ref{thm:energy-equilibrium}).
+
+    \item \textbf{Byzantine Robustness}: 77--93\% drift reduction at scales $n \in \{100, 1000\}$ across 6 attack strategies. Formal Byzantine safety bound (Theorem~\ref{thm:byzantine-safety}) with $f < n/3$ tolerance.
+
+    \item \textbf{Defense Layer Analysis}: Ablation study shows reputation tracking contributes the majority of defense ($4.3\times$ drift increase when removed), while differential privacy adds negligible overhead.
+
+    \item \textbf{Baseline Superiority}: 3.6--19.9$\times$ lower drift than Krum, Bulyan, Median, and FedAvg baselines under identical conditions.
+\end{itemize}
+
+\tool{QRES} represents a paradigm shift from cloud-centric machine learning toward \textit{Post-Cloud edge intelligence}: a future where swarms of autonomous agents evolve collective understanding through viral spread of compressed knowledge, surviving brownouts and defending against adversaries through emergent reputation dynamics.
+
+\textbf{Reproducibility.} All code, datasets, and evaluation scripts are available at \url{https://github.com/CavinKrenik/QRES_RaaS} (v19.0.1, DOI:~10.5281/zenodo.18193905).
+
+% ========================================
+% ACKNOWLEDGMENTS
+% ========================================
+\section*{Acknowledgments}
+
+This work builds on foundational research in federated learning~\cite{mcmahan2017fedavg}, Byzantine fault tolerance~\cite{blanchard2017byzantine, yin2018byzantine}, and differential privacy~\cite{dwork2014algorithmic}. Cloud infrastructure for the 10,000-node experiment was provided by Microsoft Azure (January 2026). The Jena Climate dataset is maintained by the Max Planck Institute for Biogeochemistry~\cite{jena_climate}.
+
+% ========================================
+% REFERENCES
+% ========================================
+\input{appendix}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

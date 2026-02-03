@@ -1,0 +1,26 @@
+\begin{table}[t]
+\centering
+\caption{QRES Hyperparameters and Default Values}
+\label{tab:hyperparameters}
+\small
+\begin{tabular}{llr}
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} \\
+\midrule
+$\rho_{\min}$ & Reputation ban threshold & 0.2 \\
+$\gamma$ & Reputation decay rate & 0.05 \\
+$\alpha_{\text{storm}}$ & Learning rate (Storm) & 0.2 \\
+$\alpha_{\text{calm}}$ & Learning rate (Calm) & 0.01 \\
+$\tau_{\text{calm}}$ & TWT interval (Calm) & 4 hours \\
+$\tau_{\text{pre}}$ & TWT interval (PreStorm) & 10 min \\
+$\tau_{\text{storm}}$ & TWT interval (Storm) & 30 sec \\
+$\mathcal{H}_{\text{thresh}}$ & Entropy storm threshold & 2.5 \\
+$\dot{\mathcal{H}}_{\text{thresh}}$ & Entropy derivative threshold & 0.1 \\
+$P_{\text{solar}}$ & Solar recharge rate & 100 J/hr \\
+$B_{\text{cap}}$ & Battery capacity & 23{,}760 J \\
+$B_{\min}$ & Brownout threshold & 1{,}000 J \\
+$d$ & Gradient dimension & 10 \\
+$k$ & Gossip fanout & 6 \\
+\bottomrule
+\end{tabular}
+\end{table}

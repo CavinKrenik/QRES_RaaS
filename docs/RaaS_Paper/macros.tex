@@ -1,0 +1,88 @@
+% macros.tex
+% Mathematical notation definitions for QRES RaaS paper
+% Ensures consistent notation across all sections
+
+% ========================================
+% System Components
+% ========================================
+\newcommand{\Gossip}{\mathcal{G}}           % Gossip network
+\newcommand{\Consensus}{\mathcal{C}}        % Consensus state
+\newcommand{\Reputation}{\mathcal{R}}       % Reputation score
+\newcommand{\Swarm}{\mathcal{S}}            % Swarm set
+\newcommand{\Regime}{\mathcal{M}}           % Regime state machine
+
+% ========================================
+% Optimization Variables
+% ========================================
+\newcommand{\EnergyExp}{E}                  % Energy expenditure
+\newcommand{\CommOverhead}{C}               % Communication overhead
+\newcommand{\ConvergenceErr}{\Delta}        % Convergence error/drift
+\newcommand{\ByzFraction}{f}                % Byzantine fraction
+
+% ========================================
+% Fixed-Point Arithmetic
+% ========================================
+\newcommand{\QSixteen}{\text{Q16.16}}       % Q16.16 fixed-point format
+\newcommand{\BFPSixteen}{\text{BFP-16}}     % Block Floating Point 16
+\newcommand{\FixedPoint}[1]{\lfloor #1 \rfloor_{16}} % Fixed-point quantization
+
+% ========================================
+% Energy & Power
+% ========================================
+\newcommand{\Battery}{B(t)}                 % Battery state at time t
+\newcommand{\Solar}{P_{\text{solar}}}       % Solar harvest rate
+\newcommand{\RadioCost}{P_{\text{radio}}}   % Radio power consumption
+\newcommand{\ComputeCost}{P_{\text{cpu}}}   % CPU power consumption
+\newcommand{\TWTInterval}{\tau_{\text{TWT}}} % Target Wake Time interval
+
+% ========================================
+% Byzantine & Security
+% ========================================
+\newcommand{\Honest}{\mathcal{H}}           % Honest node set
+\newcommand{\Byzantine}{\mathcal{B}}        % Byzantine node set
+\newcommand{\TrimmedMean}{\text{TMean}}     % Trimmed mean aggregation
+\newcommand{\RepThreshold}{\rho_{\min}}     % Reputation ban threshold
+
+% ========================================
+% Neural Network Components
+% ========================================
+\newcommand{\SNN}{\text{SNN}}               % Spiking Neural Network
+\newcommand{\ANN}{\text{ANN}}               % Artificial Neural Network
+\newcommand{\Residual}{r_i}                 % Prediction residual
+\newcommand{\Gradient}{\nabla \theta}       % Gradient vector
+\newcommand{\Gene}{g}                       % Evolved gene (bytecode)
+
+% ========================================
+% Regime States
+% ========================================
+\newcommand{\Calm}{\text{Calm}}
+\newcommand{\PreStorm}{\text{PreStorm}}
+\newcommand{\Storm}{\text{Storm}}
+
+% ========================================
+% Metrics
+% ========================================
+\newcommand{\Entropy}{\mathcal{H}}          % Entropy measure
+\newcommand{\Bandwidth}{\beta}              % Bandwidth usage
+\newcommand{\Latency}{\ell}                 % Network latency
+\newcommand{\Drift}{d}                      % Model drift
+
+% ========================================
+% Probability & Statistics
+% ========================================
+\newcommand{\Prob}{\mathbb{P}}              % Probability
+\newcommand{\Expect}{\mathbb{E}}            % Expectation
+\newcommand{\Variance}{\text{Var}}          % Variance
+
+% ========================================
+% Convenience Functions
+% ========================================
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+
+% ========================================
+% Typography Helpers
+% ========================================
+\newcommand{\tool}[1]{\textsc{#1}}          % Tool names (e.g., QRES)
+\newcommand{\layer}[1]{\textit{#1}}         % Layer names (e.g., Reputation)
+\newcommand{\code}[1]{\texttt{#1}}          % Code snippets (e.g., no_std)

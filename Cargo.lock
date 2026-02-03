@@ -6023,6 +6023,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "qres_sim"
+version = "0.1.0"
+dependencies = [
+ "csv",
+ "qres_core",
+ "serde",
+]
+
+[[package]]
 name = "qres_wasm"
 version = "19.0.1"
 dependencies = [

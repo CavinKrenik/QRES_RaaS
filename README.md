@@ -2,7 +2,7 @@
 
 [![v19.0.1](https://img.shields.io/badge/version-19.0.1-blue.svg)](https://github.com/CavinKrenik/QRES_RaaS/releases)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18193905-blue)](https://doi.org/10.5281/zenodo.18193905)
-[![Paper](https://img.shields.io/badge/Paper-BFT%20for%20Edge%20Learning-green.svg)](https://doi.org/10.5281/zenodo.18446020)
+[![Paper](https://img.shields.io/badge/Paper-RaaS%3A%20Resource--Aware%20Agentic%20Swarm-green.svg)](https://doi.org/10.5281/zenodo.18474976)
 [![no_std](https://img.shields.io/badge/no_std-compatible-green.svg)](https://docs.rust-embedded.org/book/intro/no-std.html)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
 [![Rust 2021](https://img.shields.io/badge/rust-2021-orange.svg)](https://www.rust-lang.org/)
@@ -221,7 +221,7 @@ Dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your 
   author = {Krenik, Cavin},
   title = {QRES: Resource-Aware Agentic Swarm},
   url = {https://github.com/CavinKrenik/QRES_RaaS},
-  doi = {10.5281/zenodo.18193905},
+  doi = {10.5281/zenodo.18474976},
   year = {2026}
 }
 ```
@@ -231,6 +231,15 @@ Dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your 
 | Paper | DOI |
 |-------|-----|
 | **Deterministic Rematerialization: Convergent Evolution in Cloud Kernels and Edge Swarms** | [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18305656-blue)](https://doi.org/10.5281/zenodo.18305656) |
+| **RaaS: Resource-Aware Agentic Swarm** | [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18474976-blue)](https://doi.org/10.5281/zenodo.18474976) |
+
+## Reproducibility & Data
+
+This repository contains the full artifacts, data, and source for the RaaS paper:
+
+- **Full Paper**: [Main.pdf](docs/RaaS_Paper/Main.pdf)
+- **Raw Data**: [docs/RaaS_Data](docs/RaaS_Data) (Sensitivity sweeps, regime timelines, energy logs)
+- **Source**: [docs/RaaS_Paper](docs/RaaS_Paper) (LaTeX source, figures, tables)
 
 ---
 

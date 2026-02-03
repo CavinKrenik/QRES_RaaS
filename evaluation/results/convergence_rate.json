@@ -1,0 +1,38 @@
+[
+  {
+    "n_honest": 20,
+    "n_total": 26,
+    "conv_round_mean": 181.2,
+    "conv_round_std": 56.4
+  },
+  {
+    "n_honest": 50,
+    "n_total": 66,
+    "conv_round_mean": 12.7,
+    "conv_round_std": 10.854031509075325
+  },
+  {
+    "n_honest": 75,
+    "n_total": 100,
+    "conv_round_mean": 7.9,
+    "conv_round_std": 5.7523908073078625
+  },
+  {
+    "n_honest": 100,
+    "n_total": 133,
+    "conv_round_mean": 3.6,
+    "conv_round_std": 1.1135528725660044
+  },
+  {
+    "n_honest": 200,
+    "n_total": 266,
+    "conv_round_mean": 2.1,
+    "conv_round_std": 0.3
+  },
+  {
+    "n_honest": 500,
+    "n_total": 666,
+    "conv_round_mean": 2.0,
+    "conv_round_std": 0.0
+  }
+]

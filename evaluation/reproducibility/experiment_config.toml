@@ -1,0 +1,83 @@
+# QRES Paper Experiment Configuration
+# All parameters used in the experimental evaluation (main.tex Sections IV-VII)
+# To reproduce: python evaluation/analysis/paper_experiments.py
+
+[general]
+random_seed = 42
+n_trials = 10
+gradient_dimension = 10
+
+[energy]
+battery_capacity_j = 23760       # 3x AA NiMH @ 2200mAh, 3.6V
+solar_rate_j_per_hr = 100        # 5W panel, 50% duty
+brownout_threshold_j = 1000
+deep_sleep_power_w = 33e-6       # ESP32-C6 deep sleep (~10uA @ 3.3V)
+radio_active_power_w = 0.220     # WiFi 6 TX
+cpu_active_power_w = 0.150       # ESP32-C6 active
+wake_window_sec = 2              # Active time per TWT wake
+
+[twt_intervals]
+calm_sec = 14400                 # 4 hours
+prestorm_sec = 600               # 10 minutes
+storm_sec = 30                   # 30 seconds
+
+[regime_thresholds]
+entropy_storm = 2.5
+entropy_calm = 1.5
+entropy_derivative_prestorm = 0.1
+entropy_derivative_calm = 0.05
+
+[reputation]
+initial_trust = 0.5
+ban_threshold = 0.2              # rho_min
+decay_rate = 0.05                # gamma
+reward_valid = 0.02
+penalty_drift = 0.08
+penalty_zkp_fail = 0.15
+
+[byzantine]
+default_fraction = 0.25
+scale_nodes = [100, 500, 1000]
+scale_fractions = [0.25, 0.30]
+ratio_sweep = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40]
+n_rounds = 200
+
+[attacks]
+strategies = [
+    "constant_bias",
+    "sign_flip",
+    "gaussian_noise",
+    "label_flip",
+    "mimicry",
+    "collusion"
+]
+mimicry_honest_rounds = 20
+bias_magnitude = 0.5
+
+[convergence]
+threshold = 0.005
+honest_counts = [20, 50, 75, 100, 200, 500]
+
+[ablation]
+configurations = [
+    "vanilla_fedavg",
+    "trimmedmean_only",
+    "reputation_only",
+    "no_dp",
+    "full_qres"
+]
+
+[energy_scenarios]
+# Format: [name, solar_hours_per_day, storm_probability, duration_days]
+scenarios = [
+    ["Jena (Baseline)", 10, 0.0, 181],
+    ["Seattle Winter", 4, 0.15, 90],
+    ["Phoenix Summer", 14, 0.03, 90],
+    ["Cloudy Week", 3, 0.25, 30],
+    ["Intermittent", 6, 0.10, 90],
+    ["Arctic Winter", 1.5, 0.20, 90]
+]
+
+[hyperparameter_sweep]
+gamma_values = [0.01, 0.02, 0.05, 0.10, 0.15, 0.20]
+rho_min_values = [0.1, 0.2, 0.3, 0.4, 0.5]

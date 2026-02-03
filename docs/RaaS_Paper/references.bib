@@ -1,0 +1,251 @@
+% references.bib
+% Bibliography for QRES RaaS academic paper
+
+% ========================================
+% QRES Primary Citations
+% ========================================
+
+@software{qres_software,
+  author       = {Krenik, Cavin},
+  title        = {{QRES}: A Decentralized Operating System for Neural Swarms},
+  year         = 2026,
+  version      = {v19.0.1},
+  doi          = {10.5281/zenodo.18193905},
+  url          = {https://doi.org/10.5281/zenodo.18193905},
+  note         = {Software release with production-ready no\_std core}
+}
+
+@article{krenik2026byzantine,
+  author       = {Krenik, Cavin},
+  title        = {Deterministic Byzantine Fault Tolerance for Resource-Constrained Edge Learning},
+  year         = 2026,
+  doi          = {10.5281/zenodo.18446020},
+  url          = {https://doi.org/10.5281/zenodo.18446020},
+  journal      = {arXiv preprint},
+  note         = {Formal verification of Byzantine safety under energy constraints}
+}
+
+@article{krenik2026rematerialization,
+  author       = {Krenik, Cavin},
+  title        = {Deterministic Rematerialization: Convergent Evolution in Cloud Kernels and Edge Swarms},
+  year         = 2026,
+  doi          = {10.5281/zenodo.18305656},
+  url          = {https://doi.org/10.5281/zenodo.18305656},
+  journal      = {arXiv preprint},
+  note         = {Theoretical foundations of fixed-point consensus and Lamarckian evolution}
+}
+
+% ========================================
+% Federated Learning Foundations
+% ========================================
+
+@inproceedings{mcmahan2017fedavg,
+  author       = {McMahan, H. Brendan and Moore, Eider and Ramage, Daniel and Hampson, Seth and Arcas, Blaise Ag{\"u}era y},
+  title        = {Communication-Efficient Learning of Deep Networks from Decentralized Data},
+  booktitle    = {Proceedings of the 20th International Conference on Artificial Intelligence and Statistics (AISTATS)},
+  year         = 2017,
+  pages        = {1273--1282},
+  publisher    = {PMLR},
+  volume       = 54,
+  note         = {Foundational FedAvg algorithm for federated learning}
+}
+
+@inproceedings{li2020fedprox,
+  author       = {Li, Tian and Sahu, Anit Kumar and Zaheer, Manzil and Sanjabi, Maziar and Talwalkar, Ameet and Smith, Virginia},
+  title        = {{FedProx}: A Federated Optimization Framework for Heterogeneous Networks},
+  booktitle    = {Proceedings of Machine Learning and Systems (MLSys)},
+  year         = 2020,
+  volume       = 2,
+  pages        = {429--450},
+  note         = {Proximal regularization for non-IID federated data}
+}
+
+% ========================================
+% Secure Aggregation
+% ========================================
+
+@inproceedings{bonawitz2017secure,
+  author       = {Bonawitz, Keith and Ivanov, Vladimir and Kreuter, Ben and Marcedone, Antonio and McMahan, H. Brendan and Patel, Sarvar and Ramage, Daniel and Segal, Aaron and Seth, Karn},
+  title        = {Practical Secure Aggregation for Privacy-Preserving Machine Learning},
+  booktitle    = {Proceedings of the 2017 ACM SIGSAC Conference on Computer and Communications Security (CCS)},
+  year         = 2017,
+  pages        = {1175--1191},
+  publisher    = {ACM},
+  doi          = {10.1145/3133956.3133982},
+  note         = {Deployed in Google Gboard for differential privacy}
+}
+
+% ========================================
+% Byzantine Fault Tolerance
+% ========================================
+
+@inproceedings{blanchard2017byzantine,
+  author       = {Blanchard, Peva and El Mhamdi, El Mahdi and Guerraoui, Rachid and Stainer, Julien},
+  title        = {Machine Learning with Adversaries: Byzantine Tolerant Gradient Descent},
+  booktitle    = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year         = 2017,
+  volume       = 30,
+  pages        = {119--129},
+  note         = {Introduces Krum aggregation for Byzantine-tolerant distributed learning}
+}
+
+@inproceedings{yin2018byzantine,
+  author       = {Yin, Dong and Chen, Yudong and Kannan, Ramchandran and Bartlett, Peter},
+  title        = {Byzantine-Robust Distributed Learning: Towards Optimal Statistical Rates},
+  booktitle    = {Proceedings of the 35th International Conference on Machine Learning (ICML)},
+  year         = 2018,
+  pages        = {5650--5659},
+  publisher    = {PMLR},
+  volume       = 80,
+  note         = {Coordinate-wise trimmed mean and median aggregation}
+}
+
+@inproceedings{elmhamdi2018bulyan,
+  author       = {El Mhamdi, El Mahdi and Guerraoui, Rachid and Rouault, S{\'e}bastien},
+  title        = {The Hidden Vulnerability of Distributed Learning in {Byzantium}},
+  booktitle    = {Proceedings of the 35th International Conference on Machine Learning (ICML)},
+  year         = 2018,
+  pages        = {3521--3530},
+  publisher    = {PMLR},
+  volume       = 80,
+  note         = {Introduces Bulyan aggregation combining Krum selection with trimming}
+}
+
+% ========================================
+% Differential Privacy
+% ========================================
+
+@inproceedings{abadi2016deep,
+  author       = {Abadi, Martin and Chu, Andy and Goodfellow, Ian and McMahan, H. Brendan and Mironov, Ilya and Talwar, Kunal and Zhang, Li},
+  title        = {Deep Learning with Differential Privacy},
+  booktitle    = {Proceedings of the 2016 ACM SIGSAC Conference on Computer and Communications Security (CCS)},
+  year         = 2016,
+  pages        = {308--318},
+  publisher    = {ACM},
+  doi          = {10.1145/2976749.2978318},
+  note         = {DP-SGD algorithm for privacy-preserving neural network training}
+}
+
+@book{dwork2014algorithmic,
+  author       = {Dwork, Cynthia and Roth, Aaron},
+  title        = {The Algorithmic Foundations of Differential Privacy},
+  year         = 2014,
+  publisher    = {Now Publishers},
+  series       = {Foundations and Trends in Theoretical Computer Science},
+  volume       = 9,
+  number       = {3-4},
+  pages        = {211--407},
+  doi          = {10.1561/0400000042},
+  note         = {Comprehensive differential privacy foundations}
+}
+
+% ========================================
+% Spiking Neural Networks
+% ========================================
+
+@article{maass1997networks,
+  author       = {Maass, Wolfgang},
+  title        = {Networks of Spiking Neurons: The Third Generation of Neural Network Models},
+  journal      = {Neural Networks},
+  year         = 1997,
+  volume       = 10,
+  number       = 9,
+  pages        = {1659--1671},
+  doi          = {10.1016/S0893-6080(97)00011-7},
+  note         = {Theoretical foundations of spiking neural networks}
+}
+
+@article{davies2018loihi,
+  author       = {Davies, Mike and Srinivasa, Narayan and Lin, Tsung-Han and Chinya, Gautham and Cao, Yongqiang and Choday, Sri Harsha and Dimou, Georgios and Joshi, Prasad and Imam, Nabil and Jain, Shweta and others},
+  title        = {Loihi: A Neuromorphic Manycore Processor with On-Chip Learning},
+  journal      = {IEEE Micro},
+  year         = 2018,
+  volume       = 38,
+  number       = 1,
+  pages        = {82--99},
+  doi          = {10.1109/MM.2018.112130359},
+  note         = {Intel's neuromorphic chip demonstrating SNN energy efficiency}
+}
+
+% ========================================
+% Edge Computing & IoT
+% ========================================
+
+@article{shi2016edge,
+  author       = {Shi, Weisong and Cao, Jie and Zhang, Quan and Li, Youhuizi and Xu, Lanyu},
+  title        = {Edge Computing: Vision and Challenges},
+  journal      = {IEEE Internet of Things Journal},
+  year         = 2016,
+  volume       = 3,
+  number       = 5,
+  pages        = {637--646},
+  doi          = {10.1109/JIOT.2016.2579198},
+  note         = {Edge computing paradigm and resource constraints}
+}
+
+% ========================================
+% Consensus Protocols
+% ========================================
+
+@article{castro1999practical,
+  author       = {Castro, Miguel and Liskov, Barbara},
+  title        = {Practical Byzantine Fault Tolerance},
+  journal      = {ACM Transactions on Computer Systems (TOCS)},
+  year         = 1999,
+  volume       = 17,
+  number       = 4,
+  pages        = {398--461},
+  doi          = {10.1145/311591.311602},
+  note         = {Classical PBFT consensus for f < n/3 Byzantine nodes}
+}
+
+% ========================================
+% Energy-Aware Systems
+% ========================================
+
+@inproceedings{jiang2011wifi,
+  author       = {Jiang, Xiaoyan and Dutta, Prabal and Culler, David and Stoica, Ion},
+  title        = {Micro Power Management of Active 802.11 Interfaces},
+  booktitle    = {Proceedings of the 9th ACM Conference on Embedded Networked Sensor Systems (SenSys)},
+  year         = 2011,
+  pages        = {122--133},
+  publisher    = {ACM},
+  doi          = {10.1145/2070942.2070955},
+  note         = {Wi-Fi power management and sleep scheduling}
+}
+
+@article{raghunathan2002energy,
+  author       = {Raghunathan, Vijay and Schurgers, Curt and Park, Sung and Srivastava, Mani B.},
+  title        = {Energy-Aware Wireless Microsensor Networks},
+  journal      = {IEEE Signal Processing Magazine},
+  year         = 2002,
+  volume       = 19,
+  number       = 2,
+  pages        = {40--50},
+  doi          = {10.1109/79.985679},
+  note         = {Energy accounting in wireless sensor networks}
+}
+
+% ========================================
+% Fixed-Point Arithmetic
+% ========================================
+
+@book{yates2013fixed,
+  author       = {Yates, Randy},
+  title        = {Fixed-Point Arithmetic: An Introduction},
+  year         = 2013,
+  publisher    = {Digital Signal Labs},
+  note         = {Practical guide to fixed-point number systems}
+}
+
+% ========================================
+% Climate Datasets
+% ========================================
+
+@misc{jena_climate,
+  author       = {{Max Planck Institute for Biogeochemistry}},
+  title        = {Jena Climate Time Series Dataset},
+  year         = 2020,
+  url          = {https://www.bgc-jena.mpg.de/wetter/},
+  note         = {14 climate variables at 10-minute intervals, 2009-2016}
+}

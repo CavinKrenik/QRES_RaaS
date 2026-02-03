@@ -1,0 +1,74 @@
+[
+  {
+    "n": 100,
+    "byz_ratio": 0.25,
+    "n_byz": 25,
+    "drift_std_mean": 0.027814394120621467,
+    "drift_std_std": 0.0005696489019393601,
+    "drift_gated_mean": 0.006305381311149308,
+    "drift_gated_std": 0.0003525921221210184,
+    "ban_round_mean": 100.0,
+    "ban_round_std": 0.0,
+    "improvement_pct": 77.33050993739056
+  },
+  {
+    "n": 500,
+    "byz_ratio": 0.25,
+    "n_byz": 125,
+    "drift_std_mean": 0.02729750112141921,
+    "drift_std_std": 0.00020126125262754158,
+    "drift_gated_mean": 0.0028169028987157056,
+    "drift_gated_std": 0.00015811614096013896,
+    "ban_round_mean": 100.0,
+    "ban_round_std": 0.0,
+    "improvement_pct": 89.68072979945626
+  },
+  {
+    "n": 1000,
+    "byz_ratio": 0.25,
+    "n_byz": 250,
+    "drift_std_mean": 0.027316979199978626,
+    "drift_std_std": 6.0415521478545245e-05,
+    "drift_gated_mean": 0.0019539407060373028,
+    "drift_gated_std": 8.50822246895873e-05,
+    "ban_round_mean": 100.0,
+    "ban_round_std": 0.0,
+    "improvement_pct": 92.84715673818417
+  },
+  {
+    "n": 100,
+    "byz_ratio": 0.3,
+    "n_byz": 30,
+    "drift_std_mean": 0.03489203307533485,
+    "drift_std_std": 0.0005715251945900288,
+    "drift_gated_mean": 0.006848769587724679,
+    "drift_gated_std": 0.00022885029567260715,
+    "ban_round_mean": 100.0,
+    "ban_round_std": 0.0,
+    "improvement_pct": 80.37153761451043
+  },
+  {
+    "n": 500,
+    "byz_ratio": 0.3,
+    "n_byz": 150,
+    "drift_std_mean": 0.03436842158870756,
+    "drift_std_std": 0.00021792188088836284,
+    "drift_gated_mean": 0.003095235394942819,
+    "drift_gated_std": 0.000158393878200181,
+    "ban_round_mean": 100.0,
+    "ban_round_std": 0.0,
+    "improvement_pct": 90.9939553466144
+  },
+  {
+    "n": 1000,
+    "byz_ratio": 0.3,
+    "n_byz": 300,
+    "drift_std_mean": 0.03439054976069235,
+    "drift_std_std": 7.024616994579366e-05,
+    "drift_gated_mean": 0.002158116408861755,
+    "drift_gated_std": 9.723994478475722e-05,
+    "ban_round_mean": 100.0,
+    "ban_round_std": 0.0,
+    "improvement_pct": 93.72468185626845
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "attack": "Constant Bias",
+    "drift_mean": 0.006305381311149308,
+    "drift_std": 0.0003525921221210184
+  },
+  {
+    "attack": "Sign Flip",
+    "drift_mean": 0.0018487867929436615,
+    "drift_std": 6.585478456234651e-05
+  },
+  {
+    "attack": "Gaussian Noise",
+    "drift_mean": 0.006305381311149308,
+    "drift_std": 0.0003525921221210184
+  },
+  {
+    "attack": "Label Flip",
+    "drift_mean": 0.027814394120621467,
+    "drift_std": 0.0005696489019393601
+  },
+  {
+    "attack": "Mimicry (20r)",
+    "drift_mean": 0.006305381311149308,
+    "drift_std": 0.0003525921221210184
+  },
+  {
+    "attack": "Collusion",
+    "drift_mean": 0.027544966003303185,
+    "drift_std": 0.0002496896641414823
+  }
+]

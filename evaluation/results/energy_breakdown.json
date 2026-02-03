@@ -1,0 +1,12 @@
+{
+  "components": {
+    "Crypto (ed25519)": 0.001218,
+    "Radio TX/RX": 0.07980000000000001,
+    "SNN Inference": 5.4e-10,
+    "Aggregation": 1.68e-05,
+    "Radio Active": 2.64,
+    "CPU Active": 1.7999999999999998,
+    "Deep Sleep": 2.850804
+  },
+  "total_daily_J": 7.37183880054
+}

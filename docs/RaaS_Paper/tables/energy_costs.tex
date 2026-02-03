@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Per-Operation Energy Costs}
+\label{tab:energy-costs}
+\begin{tabular}{lrl}
+\toprule
+\textbf{Operation} & \textbf{Energy} & \textbf{Source} \\
+\midrule
+ed25519 sign & 47\,$\mu$J & \cite{davies2018loihi} \\
+ed25519 verify & 156\,$\mu$J & \cite{davies2018loihi} \\
+Gossip TX (74\,B) & 8.2\,mJ & \cite{jiang2011wifi} \\
+Gossip RX (74\,B) & 5.1\,mJ & \cite{jiang2011wifi} \\
+SNN inference (10 neurons) & 90\,pJ & \cite{davies2018loihi} \\
+ANN inference (10 neurons) & 460\,pJ & \cite{davies2018loihi} \\
+Trimmed mean ($d{=}10$) & 2.3\,$\mu$J & Measured \\
+Reputation update & 0.5\,$\mu$J & Measured \\
+\bottomrule
+\end{tabular}
+\end{table}

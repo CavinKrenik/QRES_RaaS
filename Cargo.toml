@@ -2,6 +2,7 @@
 members = [
     "crates/qres_core",
     "crates/qres_daemon",
+    "crates/qres_sim",
     "crates/qres_wasm",
     "evaluation/benchmarks",
     "examples/virtual_iot_network",

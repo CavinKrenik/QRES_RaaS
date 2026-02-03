@@ -1,0 +1,74 @@
+[
+  {
+    "scenario": "Jena (Baseline)",
+    "days": 181,
+    "final_battery": 23760.0,
+    "min_battery": 23760.0,
+    "min_battery_pct": 100.0,
+    "brownout_count": 0,
+    "calm_pct": 100.0,
+    "prestorm_pct": 0.0,
+    "storm_pct": 0.0,
+    "survived": true
+  },
+  {
+    "scenario": "Seattle Winter",
+    "days": 90,
+    "final_battery": 23760.0,
+    "min_battery": 13946.376683423245,
+    "min_battery_pct": 58.696871563229145,
+    "brownout_count": 0,
+    "calm_pct": 82.22222222222223,
+    "prestorm_pct": 2.2222222222222223,
+    "storm_pct": 15.555555555555555,
+    "survived": true
+  },
+  {
+    "scenario": "Phoenix Summer",
+    "days": 90,
+    "final_battery": 23760.0,
+    "min_battery": 23760.0,
+    "min_battery_pct": 100.0,
+    "brownout_count": 0,
+    "calm_pct": 95.55555555555556,
+    "prestorm_pct": 1.1111111111111112,
+    "storm_pct": 3.3333333333333335,
+    "survived": true
+  },
+  {
+    "scenario": "Cloudy Week",
+    "days": 30,
+    "final_battery": 23760.0,
+    "min_battery": 11910.695230185602,
+    "min_battery_pct": 50.12918867923233,
+    "brownout_count": 0,
+    "calm_pct": 73.33333333333333,
+    "prestorm_pct": 3.3333333333333335,
+    "storm_pct": 23.333333333333332,
+    "survived": true
+  },
+  {
+    "scenario": "Intermittent",
+    "days": 90,
+    "final_battery": 23760.0,
+    "min_battery": 22038.62968133281,
+    "min_battery_pct": 92.7551754264849,
+    "brownout_count": 0,
+    "calm_pct": 86.66666666666667,
+    "prestorm_pct": 2.2222222222222223,
+    "storm_pct": 11.11111111111111,
+    "survived": true
+  },
+  {
+    "scenario": "Arctic Winter",
+    "days": 90,
+    "final_battery": 8698.322472477192,
+    "min_battery": 0,
+    "min_battery_pct": 0.0,
+    "brownout_count": 8,
+    "calm_pct": 75.55555555555556,
+    "prestorm_pct": 2.2222222222222223,
+    "storm_pct": 22.22222222222222,
+    "survived": false
+  }
+]
