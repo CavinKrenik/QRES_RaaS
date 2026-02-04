@@ -106,21 +106,25 @@ fn test_prestorm_detection() {
     );
 
     println!(">> Phase 3: Entropy exceeds threshold -> Storm");
-    detector.update(0.9, 100, 2000);
+    // With hysteresis, need 5 consecutive confirmations for PreStorm->Storm
+    for i in 0..6 {
+        detector.update(0.9, 100, 2000 + i * 100);
+    }
     assert_eq!(
         detector.current_regime(),
         Regime::Storm,
-        "Should be Storm when entropy exceeds threshold"
+        "Should be Storm after 5+ confirmations at high entropy"
     );
 
     println!(">> Phase 4: Entropy drops -> back to Calm");
-    for i in 0..5 {
+    // With hysteresis, need 5 consecutive confirmations for Storm->Calm
+    for i in 0..6 {
         detector.update(0.1, 100, 3000 + i * 100);
     }
     assert_eq!(
         detector.current_regime(),
         Regime::Calm,
-        "Should return to Calm when entropy drops"
+        "Should return to Calm after 5+ confirmations at low entropy"
     );
 
     println!("PRE-STORM DETECTION: VERIFIED");
@@ -138,21 +142,24 @@ fn test_lag_to_adaptation_measurement() {
         detector.update(0.1, 100, i * 100);
     }
 
-    // Begin entropy ramp
+    // Begin entropy ramp - steeper to trigger derivative threshold
     let mut ticks_to_prestorm = 0u32;
     let mut ticks_to_storm = 0u32;
     let ramp_start = 0.2;
-    let ramp_step = 0.1;
+    let ramp_step = 0.15; // Steeper ramp to trigger derivative threshold
 
-    for tick in 0..20 {
+    // Extended ramp to account for hysteresis requirements (5 confirmations)
+    for tick in 0..30 {
         let entropy = ramp_start + tick as f32 * ramp_step;
         detector.update(entropy, 100, 2000 + tick as u64 * 100);
 
         if ticks_to_prestorm == 0 && detector.current_regime() == Regime::PreStorm {
             ticks_to_prestorm = tick + 1;
+            println!("  PreStorm detected at tick {} with entropy {:.2}", tick + 1, entropy);
         }
         if ticks_to_storm == 0 && detector.current_regime() == Regime::Storm {
             ticks_to_storm = tick + 1;
+            println!("  Storm detected at tick {} with entropy {:.2}", tick + 1, entropy);
         }
     }
 
