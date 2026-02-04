@@ -52,6 +52,7 @@ pub mod aggregation;
 pub mod ans_coder;
 #[cfg(feature = "std")]
 pub mod archive;
+pub mod audit; // Phase 1.3 (v21): Stochastic Auditing for Class C Collusion Detection
 #[cfg(feature = "std")]
 pub mod compression;
 pub mod config;

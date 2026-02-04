@@ -123,3 +123,138 @@ impl GhostUpdate {
         (self.accuracy_delta * error_quality * energy_factor).min(1.0)
     }
 }
+
+/// Phase 1.3 (v21): Stochastic Auditing for Class C Collusion Detection
+///
+/// Detects coordinated nodes that submit gradients within trimming bounds but
+/// biased in the same direction (e.g., all bias predictions +0.2).
+///
+/// **Attack Model (Class C):**
+/// - Cartel of n ≥ 3 nodes submits gradients within 1.5σ (evades trimming)
+/// - All gradients aligned to bias predictions in same direction
+/// - Cannot be detected by coordinate-wise trimming alone
+///
+/// **Defense Protocol:**
+/// 1. Randomly audit 3 nodes every 50 rounds when entropy > threshold
+/// 2. Challenge nodes to provide raw prediction + proof it matches submitted gradient
+/// 3. Verify gradient = hash(raw_prediction, local_data_hash)
+/// 4. Punish nodes that fail verification (AuditFailed reason)
+///
+/// **Privacy Preservation:**
+/// - Only raw predictions transmitted (NOT raw data)
+/// - Challenge-response within 2 RTT
+/// - Optional: ZK-proof that ||grad - f(pred)||_2 < ε
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AuditChallenge {
+    /// Auditor's peer ID (challenger)
+    pub auditor_id: [u8; 32],
+    /// Challenged node's peer ID
+    pub challenged_id: [u8; 32],
+    /// Round number being audited
+    pub audit_round: u64,
+    /// Random nonce to prevent replay attacks
+    pub nonce: [u8; 32],
+    /// Timestamp of challenge (for timeout detection)
+    pub timestamp: u64,
+}
+
+/// Response to audit challenge containing raw prediction and proof
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AuditResponse {
+    /// Challenged node's peer ID
+    pub peer_id: [u8; 32],
+    /// Raw prediction vector (before gradient computation)
+    pub raw_prediction: Vec<i32>, // Q16.16 format
+    /// Hash of local data used for gradient computation
+    pub local_data_hash: [u8; 32],
+    /// The gradient that was submitted in audit_round
+    pub submitted_gradient: Vec<i32>, // Q16.16 format
+    /// Nonce from original challenge (for matching)
+    pub nonce: [u8; 32],
+    /// Optional: ZK-proof that gradient computation was correct
+    pub zk_proof: Option<NormProof>,
+}
+
+impl AuditChallenge {
+    /// Create a new audit challenge for a specific node and round
+    pub fn new(
+        auditor_id: [u8; 32],
+        challenged_id: [u8; 32],
+        audit_round: u64,
+        nonce: [u8; 32],
+        timestamp: u64,
+    ) -> Self {
+        Self {
+            auditor_id,
+            challenged_id,
+            audit_round,
+            nonce,
+            timestamp,
+        }
+    }
+
+    /// Check if this challenge has expired (timeout = 2 RTT ≈ 10 seconds)
+    pub fn is_expired(&self, current_timestamp: u64) -> bool {
+        const AUDIT_TIMEOUT_SECONDS: u64 = 10;
+        current_timestamp.saturating_sub(self.timestamp) > AUDIT_TIMEOUT_SECONDS
+    }
+}
+
+impl AuditResponse {
+    /// Create a new audit response
+    pub fn new(
+        peer_id: [u8; 32],
+        raw_prediction: Vec<i32>,
+        local_data_hash: [u8; 32],
+        submitted_gradient: Vec<i32>,
+        nonce: [u8; 32],
+        zk_proof: Option<NormProof>,
+    ) -> Self {
+        Self {
+            peer_id,
+            raw_prediction,
+            local_data_hash,
+            submitted_gradient,
+            nonce,
+            zk_proof,
+        }
+    }
+
+    /// Verify that the submitted gradient matches the claimed raw prediction
+    ///
+    /// This checks:
+    /// 1. Nonce matches (prevents replay attacks)
+    /// 2. L2 distance between claimed gradient and recomputed gradient < tolerance
+    ///
+    /// Returns true if verification passes, false otherwise.
+    ///
+    /// **Tolerance:** 0.01 in Q16.16 (allows for minor floating-point errors)
+    pub fn verify(&self, expected_nonce: &[u8; 32], recomputed_gradient: &[i32]) -> bool {
+        // Check nonce match
+        if &self.nonce != expected_nonce {
+            return false;
+        }
+
+        // Check dimension match
+        if self.submitted_gradient.len() != recomputed_gradient.len() {
+            return false;
+        }
+
+        // Compute L2 distance between submitted and recomputed gradients
+        let l2_sq: i64 = self
+            .submitted_gradient
+            .iter()
+            .zip(recomputed_gradient.iter())
+            .map(|(a, b)| {
+                let diff = (*a as i64) - (*b as i64);
+                diff * diff
+            })
+            .sum();
+
+        // Tolerance: 0.01 in Q16.16 = 655 fixed-point units
+        // Squared: 655^2 = 429,025
+        const TOLERANCE_SQ: i64 = 429_025;
+
+        l2_sq <= TOLERANCE_SQ * (self.submitted_gradient.len() as i64)
+    }
+}

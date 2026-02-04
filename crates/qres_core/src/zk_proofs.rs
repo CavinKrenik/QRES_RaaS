@@ -894,6 +894,35 @@ pub trait EnclaveGate {
     /// # Returns
     /// `true` if proof is valid, `false` otherwise.
     fn verify_attested_proof(&self, proof: &NormProof, threshold: f32) -> bool;
+
+    /// Verify audit response for Class C collusion detection (v21.0)
+    ///
+    /// Verifies that a node's claimed raw prediction matches their submitted gradient.
+    /// This detects coordinated nodes that submit gradients within trimming bounds
+    /// but biased in the same direction.
+    ///
+    /// **Verification Steps:**
+    /// 1. Recompute gradient from raw_prediction and local_data_hash
+    /// 2. Compare to submitted_gradient using L2 distance
+    /// 3. Accept if distance < tolerance (0.01 in Q16.16)
+    ///
+    /// # Arguments
+    /// * `raw_prediction` - Node's claimed raw prediction vector (Q16.16)
+    /// * `local_data_hash` - Hash of local data used for gradient computation
+    /// * `submitted_gradient` - The gradient submitted in the audited round (Q16.16)
+    ///
+    /// # Returns
+    /// `true` if verification passes, `false` if audit failed (node should be punished)
+    ///
+    /// **Invariant Safety:**
+    /// - INV-1: Verification is independent of reputation
+    /// - Energy-free for verifiers (no energy check)
+    fn verify_audit_response(
+        &self,
+        raw_prediction: &[i32],
+        local_data_hash: &[u8; 32],
+        submitted_gradient: &[i32],
+    ) -> bool;
 }
 
 /// Enclave errors
@@ -976,6 +1005,59 @@ impl EnclaveGate for SoftwareEnclaveGate {
         // In real TEE: would verify attestation signature
         // For now: always accept (mock)
         true
+    }
+
+    fn verify_audit_response(
+        &self,
+        raw_prediction: &[i32],
+        local_data_hash: &[u8; 32],
+        submitted_gradient: &[i32],
+    ) -> bool {
+        // Check dimension match
+        if raw_prediction.len() != submitted_gradient.len() {
+            return false;
+        }
+
+        if raw_prediction.is_empty() {
+            return false;
+        }
+
+        // Recompute gradient from raw prediction
+        // In a real system, this would use the actual gradient computation function
+        // For now, we simulate it using a simple hash-based approach
+        //
+        // gradient[i] = hash(raw_prediction[i], local_data_hash) mod range
+        //
+        // This is a placeholder - in production, you'd call the actual
+        // gradient computation function used in training
+        let recomputed_gradient: alloc::vec::Vec<i32> = raw_prediction
+            .iter()
+            .enumerate()
+            .map(|(i, &pred)| {
+                // Simple hash: XOR prediction with data hash bytes
+                let hash_byte = local_data_hash[i % 32];
+                let hash_contribution = (hash_byte as i32) << 8; // Scale to Q16.16 range
+                pred.wrapping_add(hash_contribution)
+            })
+            .collect();
+
+        // Compute L2 distance between submitted and recomputed gradients
+        let l2_sq: i64 = submitted_gradient
+            .iter()
+            .zip(recomputed_gradient.iter())
+            .map(|(a, b)| {
+                let diff = (*a as i64) - (*b as i64);
+                diff * diff
+            })
+            .sum();
+
+        // Tolerance: 0.01 in Q16.16 = 655 fixed-point units
+        // Squared: 655^2 = 429,025
+        // Allow per-dimension tolerance
+        const TOLERANCE_SQ: i64 = 429_025;
+        let max_allowed = TOLERANCE_SQ * (submitted_gradient.len() as i64);
+
+        l2_sq <= max_allowed
     }
 }
 

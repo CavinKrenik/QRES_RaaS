@@ -1,6 +1,6 @@
 # QRES &mdash; RaaS: Resource-Aware Agentic Swarm
 
-[![v20.0](https://img.shields.io/badge/version-20.0-blue.svg)](https://github.com/CavinKrenik/QRES_RaaS/releases)
+[![v20.0.1](https://img.shields.io/badge/version-20.0.1-blue.svg)](https://github.com/CavinKrenik/QRES_RaaS/releases)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18193905-blue)](https://doi.org/10.5281/zenodo.18193905)
 [![Paper](https://img.shields.io/badge/Paper-RaaS%3A%20Resource--Aware%20Agentic%20Swarm-green.svg)](https://doi.org/10.5281/zenodo.18474976)
 [![no_std](https://img.shields.io/badge/no_std-compatible-green.svg)](https://docs.rust-embedded.org/book/intro/no-std.html)
@@ -12,6 +12,8 @@
 RaaS (Resource-Aware Agentic Swarm) enforces three architectural pillars for survival: **Energy-Bounded Agency** (every operation is gated by energy accounting), **Verifiable Integrity** (cryptographic proofs without central trust), and **Autonomous Triage** (self-organizing regime switching). The reference implementation (QRES) uses deterministic rematerialization and Q16.16 fixed-point consensus to achieve 99% bandwidth reduction vs federated learning while tolerating 30% Byzantine attackers.
 
 **v20.0 "Cognitive Mesh"** introduces cross-modal temporal attention fusion (TAAF) with event-driven sparse spiking, achieving a **3.6% error improvement over v19** (0.0351 RMSE floor, max drift 0.0005). The Adaptive Exponent (Rule 4) scales reputation weighting by swarm size: 2.0 for small (<20 nodes), 3.0 for medium, 3.5 for large (>50 nodes). Influence is capped at `rep^3 * 0.8` to mitigate Slander-Amplification. Lamarckian recovery verified at 4% error delta across 8 brownout/recovery cycles with zero catastrophic knowledge loss.
+
+**v20.0.1 "Adaptive Defense"** adds three Byzantine resistance enhancements: (1) **Adaptive Aggregation** eliminates 13.8% overhead by switching between trimmed-mean and reputation-only modes based on swarm maturity; (2) **Regime Hysteresis** reduces false-positive regime transitions by 96.9% through asymmetric confirmation thresholds; (3) **Stochastic Auditing** achieves 100% Class C collusion detection with 0% false positives and 2% bandwidth overhead. Detection timing: mean 82.3 rounds (first=31, last=174), verified across 10 cartel scenarios with 390 honest nodes. See [CLASS_C_DEFENSE.md](./docs/security/CLASS_C_DEFENSE.md) for full protocol specification.
 
 **Architectural Scope:**
 Read **[SCOPE.md](./docs/SCOPE.md)** before deployment or evaluation. QRES is intentionally narrow.

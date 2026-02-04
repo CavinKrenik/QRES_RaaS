@@ -350,6 +350,7 @@ mod variance_monitor_tests {
 
         let shift_val = shift.unwrap();
         assert!(shift_val > 0, "Shift should be positive");
+        #[cfg(feature = "std")]
         println!("Correction shift: {} bits", shift_val);
     }
 
@@ -361,24 +362,29 @@ mod variance_monitor_tests {
         let small_data = vec![1e-8f32; 8];
         let mut bfp = Bfp16Vec::from_f32_slice(&small_data);
 
+        #[cfg(feature = "std")]
         println!(
             "Before: exponent={}, mantissas={:?}",
             bfp.exponent, bfp.mantissas
         );
         let before_values = bfp.to_vec_f32();
+        #[cfg(feature = "std")]
         println!("Before values: {:?}", before_values);
 
         // Check if correction is needed
         if let Some(shift) = monitor.observe_gradients(&small_data) {
+            #[cfg(feature = "std")]
             println!("Applying correction: shift={} bits", shift);
             VarianceMonitor::apply_correction(&mut bfp, shift);
         }
 
+        #[cfg(feature = "std")]
         println!(
             "After: exponent={}, mantissas={:?}",
             bfp.exponent, bfp.mantissas
         );
         let after_values = bfp.to_vec_f32();
+        #[cfg(feature = "std")]
         println!("After values: {:?}", after_values);
 
         // The key test: values should still be non-zero
@@ -430,16 +436,19 @@ mod variance_monitor_tests {
             velocity_log.push(velocity);
         }
 
-        println!("--- Vanishing Gradient Recovery ---");
-        println!("Corrections applied: {}", monitor.corrections_count());
-        println!(
-            "Min magnitude observed: {:.2e}",
-            monitor.min_magnitude_observed()
-        );
-        println!(
-            "Final velocity: {:.2e}",
-            velocity_log.last().unwrap_or(&0.0)
-        );
+        #[cfg(feature = "std")]
+        {
+            println!("--- Vanishing Gradient Recovery ---");
+            println!("Corrections applied: {}", monitor.corrections_count());
+            println!(
+                "Min magnitude observed: {:.2e}",
+                monitor.min_magnitude_observed()
+            );
+            println!(
+                "Final velocity: {:.2e}",
+                velocity_log.last().unwrap_or(&0.0)
+            );
+        }
 
         // Verify non-zero learning velocity is maintained
         let final_velocity = *velocity_log.last().unwrap_or(&0.0);
@@ -455,6 +464,7 @@ mod variance_monitor_tests {
             "Auto-tuner should have applied corrections"
         );
 
+        #[cfg(feature = "std")]
         println!("BFP-16 AUTO-TUNING: VERIFIED (non-zero velocity maintained)");
     }
 }

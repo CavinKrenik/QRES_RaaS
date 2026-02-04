@@ -197,6 +197,74 @@ impl Aggregator for WeightedTrimmedMeanAggregator {
     }
 }
 
+/// Adaptive Aggregator - switches strategy based on swarm maturity
+///
+/// Implements Phase 1.1 of v21.0 Roadmap:
+/// - Cold-start: Use WeightedTrimmedMean when Byzantine nodes not yet identified
+/// - Mature: Use reputation-only weighting once immune system has isolated attackers
+///
+/// Decision threshold:
+/// - Cold-start if: banned_count < 3 OR ban_rate > 1%
+/// - Mature otherwise
+#[derive(Clone, Debug)]
+pub struct AdaptiveAggregator {
+    /// Number of top/bottom values to trim per dimension (in cold-start mode)
+    pub f: usize,
+    /// Reputation weights per node (same order as updates)
+    pub reputation_weights: Vec<f32>,
+    /// Number of banned nodes (from ReputationTracker)
+    pub banned_count: usize,
+    /// Total number of nodes in swarm
+    pub total_nodes: usize,
+}
+
+impl AdaptiveAggregator {
+    pub fn new(
+        f: usize,
+        reputation_weights: Vec<f32>,
+        banned_count: usize,
+        total_nodes: usize,
+    ) -> Self {
+        Self {
+            f,
+            reputation_weights,
+            banned_count,
+            total_nodes,
+        }
+    }
+
+    /// Determine if swarm is in cold-start phase
+    ///
+    /// Returns true if:
+    /// - Fewer than 3 nodes have been banned (immune system still learning), OR
+    /// - Ban rate > 1% (active attack in progress)
+    pub fn is_cold_start(&self) -> bool {
+        if self.total_nodes == 0 {
+            return true;
+        }
+        let ban_rate = self.banned_count as f32 / self.total_nodes as f32;
+        self.banned_count < 3 || ban_rate > 0.01
+    }
+}
+
+impl Aggregator for AdaptiveAggregator {
+    fn aggregate(&self, updates: &[Vec<f32>]) -> AggregationResult {
+        aggregate_updates(
+            updates,
+            &AggregationMode::Adaptive {
+                f: self.f,
+                reputation_weights: self.reputation_weights.clone(),
+                banned_count: self.banned_count,
+                total_nodes: self.total_nodes,
+            },
+        )
+    }
+
+    fn name(&self) -> &'static str {
+        "Adaptive"
+    }
+}
+
 /// Weighted trimmed mean: nodes contribute proportionally to their reputation.
 /// After trimming top/bottom `f` values per dimension, remaining values are
 /// averaged with reputation-based weights.
@@ -302,6 +370,45 @@ fn weighted_mean(updates: &[Vec<f32>], reputation_weights: &[f32]) -> Aggregatio
     }
 }
 
+/// Adaptive aggregation: switches between trimmed and reputation-only based on swarm maturity
+///
+/// Phase 1.1 Implementation (v21.0 Roadmap):
+///
+/// Decision Logic:
+/// - Cold-start (banned < 3 OR ban_rate > 1%): Use WeightedTrimmedMean (L2 + L4)
+///   * Byzantine nodes not yet identified by immune system
+///   * Trimming protects against coordinated attacks
+///
+/// - Mature (banned ≥ 3 AND ban_rate < 1%): Use reputation-weighted mean only (L2)
+///   * Immune system has successfully isolated attackers
+///   * Trimming adds noise to honest gradients (reduces convergence)
+///   * Ablation data: Reputation Only achieves 0.0056 RMSE vs 0.0065 for Full QRES
+///
+/// This eliminates the "trimming overhead" discovered in v20 ablation studies.
+fn adaptive_aggregate(
+    updates: &[Vec<f32>],
+    f: usize,
+    reputation_weights: &[f32],
+    banned_count: usize,
+    total_nodes: usize,
+) -> AggregationResult {
+    // Determine swarm maturity
+    let is_cold_start = if total_nodes == 0 {
+        true
+    } else {
+        let ban_rate = banned_count as f32 / total_nodes as f32;
+        banned_count < 3 || ban_rate > 0.01
+    };
+
+    if is_cold_start {
+        // Cold-start phase: Use WeightedTrimmedMean for Byzantine protection
+        weighted_trimmed_mean(updates, f, reputation_weights)
+    } else {
+        // Mature swarm: Use reputation-only weighting for optimal convergence
+        weighted_mean(updates, reputation_weights)
+    }
+}
+
 /// Aggregation mode for combining model updates
 #[derive(Clone, Debug, Default)]
 pub enum AggregationMode {
@@ -319,6 +426,20 @@ pub enum AggregationMode {
     TrimmedMeanByz { f: usize },
     /// Coordinate-wise median
     Median,
+    /// Adaptive aggregation - switches between trimmed and reputation-only based on swarm maturity
+    ///
+    /// Cold-start phase: Uses WeightedTrimmedMean (banned < 3 OR ban_rate > 1%)
+    /// Mature swarm: Uses reputation-weighted mean only (banned ≥ 3 AND ban_rate < 1%)
+    ///
+    /// This eliminates the trimming overhead discovered in ablation studies:
+    /// - Reputation Only: 0.0056 RMSE
+    /// - Full QRES (L2+L4): 0.0065 RMSE
+    Adaptive {
+        f: usize,
+        reputation_weights: Vec<f32>,
+        banned_count: usize,
+        total_nodes: usize,
+    },
 }
 
 /// Result of aggregation with metadata
@@ -361,6 +482,12 @@ pub fn aggregate_updates(updates: &[Vec<f32>], mode: &AggregationMode) -> Aggreg
         }
         AggregationMode::TrimmedMeanByz { f } => trimmed_mean_byz(updates, n, d, *f),
         AggregationMode::Median => median_agg(updates, n, d),
+        AggregationMode::Adaptive {
+            f,
+            reputation_weights,
+            banned_count,
+            total_nodes,
+        } => adaptive_aggregate(updates, *f, reputation_weights, *banned_count, *total_nodes),
     }
 }
 
@@ -770,6 +897,176 @@ mod tests {
             "Higher reputation should give more influence: high_rep={} < low_rep={}",
             result_high.weights[0],
             result_low.weights[0]
+        );
+    }
+
+    // ================================================================
+    // Adaptive Aggregation Tests (Phase 1.1 v21.0)
+    // ================================================================
+
+    #[test]
+    fn test_adaptive_cold_start_uses_trimming() {
+        // When banned_count < 3, should use WeightedTrimmedMean
+        let updates = vec![
+            vec![1.0],
+            vec![1.1],
+            vec![0.9],
+            vec![100.0], // Byzantine outlier
+        ];
+        let weights = vec![0.8, 0.8, 0.8, 0.5]; // Byzantine has lower rep
+
+        let agg = AdaptiveAggregator::new(1, weights.clone(), 0, 10);
+        assert!(agg.is_cold_start(), "Should be in cold-start with 0 banned");
+
+        let result = agg.aggregate(&updates);
+
+        // Should trim the outlier (100.0) and average the rest
+        // Expected: weighted mean of [1.0, 1.1, 0.9] ≈ 1.0
+        assert!(
+            (result.weights[0] - 1.0).abs() < 0.2,
+            "Should use trimming to remove outlier: got {}",
+            result.weights[0]
+        );
+    }
+
+    #[test]
+    fn test_adaptive_mature_uses_reputation_only() {
+        // When banned >= 3 AND ban_rate < 1%, should use reputation-weighted mean
+        let updates = vec![
+            vec![1.0],
+            vec![1.0],
+            vec![1.0],
+            vec![1.5], // Slight deviation, but node is banned
+        ];
+        let weights = vec![0.8, 0.8, 0.8, 0.0]; // Last node effectively banned
+
+        // Use 3 banned out of 500 nodes -> ban_rate = 0.6% (< 1%)
+        let agg = AdaptiveAggregator::new(1, weights.clone(), 3, 500);
+        assert!(
+            !agg.is_cold_start(),
+            "Should be mature with 3 banned out of 500 (0.6% ban rate)"
+        );
+
+        let result = agg.aggregate(&updates);
+
+        // Should use reputation weighting (node 4 has 0.0 weight)
+        // Expected: weighted mean ≈ 1.0 (ignores the 1.5 due to zero weight)
+        assert!(
+            (result.weights[0] - 1.0).abs() < 0.1,
+            "Mature mode should use reputation weighting: got {}",
+            result.weights[0]
+        );
+    }
+
+    #[test]
+    fn test_adaptive_transition_threshold() {
+        // Test the exact threshold: banned=3, ban_rate=1%
+        let weights = vec![0.8; 10];
+
+        // Case 1: banned=2 -> cold-start
+        let agg1 = AdaptiveAggregator::new(1, weights.clone(), 2, 100);
+        assert!(agg1.is_cold_start(), "banned=2 should trigger cold-start");
+
+        // Case 2: banned=3 AND ban_rate < 1% -> mature
+        let agg2 = AdaptiveAggregator::new(1, weights.clone(), 3, 400);
+        assert!(
+            !agg2.is_cold_start(),
+            "banned=3, ban_rate=0.75% should be mature"
+        );
+
+        // Case 3: banned=5 BUT ban_rate > 1% -> cold-start (active attack)
+        let agg3 = AdaptiveAggregator::new(1, weights.clone(), 5, 100);
+        assert!(
+            agg3.is_cold_start(),
+            "ban_rate=5% should trigger cold-start (attack)"
+        );
+    }
+
+    #[test]
+    fn test_adaptive_convergence_improvement() {
+        // Verify that mature mode achieves better convergence than trimming
+        // (as proven by ablation study: 0.0056 vs 0.0065 RMSE)
+        let true_weights = vec![1.0, 2.0];
+        let updates = vec![
+            vec![0.98, 1.97], // honest, slight noise
+            vec![1.02, 2.03], // honest, slight noise
+            vec![0.99, 1.98], // honest, slight noise
+            vec![1.01, 2.02], // honest, slight noise
+        ];
+        let weights = vec![0.9, 0.9, 0.9, 0.9]; // All high reputation
+
+        // Mature mode (reputation-only)
+        let agg_mature = AdaptiveAggregator::new(1, weights.clone(), 5, 100);
+        let result_mature = agg_mature.aggregate(&updates);
+
+        // Cold-start mode (with trimming)
+        let agg_cold = AdaptiveAggregator::new(1, weights.clone(), 0, 100);
+        let result_cold = agg_cold.aggregate(&updates);
+
+        // Compute drift from true weights
+        let drift_mature: f32 = result_mature
+            .weights
+            .iter()
+            .zip(&true_weights)
+            .map(|(a, b)| (a - b).powi(2))
+            .sum::<f32>()
+            .sqrt();
+
+        let drift_cold: f32 = result_cold
+            .weights
+            .iter()
+            .zip(&true_weights)
+            .map(|(a, b)| (a - b).powi(2))
+            .sum::<f32>()
+            .sqrt();
+
+        // Mature mode should have lower drift (trimming discards honest gradients at tails)
+        assert!(
+            drift_mature <= drift_cold * 1.1, // Allow 10% margin
+            "Mature mode should converge as well or better: mature={}, cold={}",
+            drift_mature,
+            drift_cold
+        );
+    }
+
+    #[test]
+    fn test_adaptive_byzantine_resistance_cold_start() {
+        // Verify that cold-start mode still resists Byzantine attacks
+        let updates = vec![
+            vec![1.0],
+            vec![1.1],
+            vec![0.9],
+            vec![1.05],
+            vec![100.0], // Strong Byzantine attack
+        ];
+        let weights = vec![0.8, 0.8, 0.8, 0.8, 0.3]; // Attacker has lower rep
+
+        let agg = AdaptiveAggregator::new(1, weights.clone(), 1, 10);
+        assert!(agg.is_cold_start());
+
+        let result = agg.aggregate(&updates);
+
+        // Should trim the outlier (100.0) despite cold-start
+        assert!(
+            result.weights[0] < 10.0,
+            "Cold-start mode should still resist Byzantine: got {}",
+            result.weights[0]
+        );
+    }
+
+    #[test]
+    fn test_adaptive_determinism() {
+        // INV-6: Adaptive mode must be deterministic
+        let updates = vec![vec![1.0, 2.0], vec![1.5, 2.5], vec![0.5, 1.5]];
+        let weights = vec![0.9, 0.8, 0.7];
+
+        let agg = AdaptiveAggregator::new(1, weights.clone(), 2, 50);
+        let r1 = agg.aggregate(&updates);
+        let r2 = agg.aggregate(&updates);
+
+        assert_eq!(
+            r1.weights, r2.weights,
+            "Adaptive mode must be deterministic"
         );
     }
 

@@ -10,6 +10,7 @@ use std::time::Instant;
 
 #[derive(Debug, Clone)]
 struct WeatherSample {
+    #[allow(dead_code)]
     timestamp: f64,
     temp: f64,
     pressure: f64,
@@ -59,7 +60,7 @@ fn test_6month_autonomy() {
 
     // Main simulation loop
     for (idx, sample) in samples.iter().enumerate() {
-        let entropy = compute_weather_entropy(&sample);
+        let entropy = compute_weather_entropy(sample);
 
         // Update regime detector (time in ms, 10-min steps)
         let now_ms = (idx as u64) * 600 * 1000;

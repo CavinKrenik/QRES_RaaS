@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use QRES in academic work, please cite the software and relevant papers below."
 
 title: "QRES: A Decentralized Operating System for Neural Swarms"
-version: "v20.0.0"
+version: "v20.0.1"
 doi: "10.5281/zenodo.18193905"
 date-released: "2026-02-04"
 
