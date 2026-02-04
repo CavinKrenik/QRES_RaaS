@@ -68,6 +68,42 @@ This document outlines the **Defense-in-Depth** security architecture of the QRE
 
 ---
 
+## Layer 5: Hardware-Attested Trust (v20+)
+**Focus:** Trusted Execution Environments (TEE) for silicon-level security guarantees.
+
+### Implemented (v20 Phase 4)
+- [x] **EnclaveGate Trait**: Unified API for hardware-abstracted security operations
+- [x] **Software Enclave Gate**: Mock implementation with PMP/PMA simulation
+  - Energy guard: `report_reputation()` fails if `EnergyPool < 10%` (INV-5)
+  - ZK proof generation with energy accounting
+  - API-compatible with future TEE backends
+- [x] **TEE Migration Guide**: One-page checklist for Keystone/Penglai/ESP-TEE integration
+
+### Roadmap (Post-v20)
+- **Keystone TEE Integration**: RISC-V Keystone SDK for SiFive U74
+- **Penglai TEE Integration**: Nuclei N307 support
+- **ESP-TEE Integration**: Experimental ESP32-S3/C6 support
+- **Attestation Verification**: Platform-specific attestation report validation
+- **Hardware Energy Accounting**: Direct PMP-protected register reads (no userspace bypass)
+- **Attested ZK Proofs**: Proofs signed with enclave key (prevents forgery)
+
+**Security Benefits:**
+- **Physical Memory Protection (PMP)**: Prevents userspace from bypassing energy guards
+- **Hardware-Attested Proofs**: ZK proofs cryptographically bound to enclave identity
+- **Constant-Time Operations**: TEE-enforced timing attack resistance
+- **Sealed Storage**: Lamarckian weight recovery with hardware encryption
+
+**Migration Path:**
+1. **Phase 4 (v20):** Software gate establishes API contract
+2. **Post-v20.1:** Hardware Abstraction Layer (HAL) for energy reading
+3. **Post-v20.2:** Keystone integration (primary RISC-V target)
+4. **Post-v20.3:** Penglai integration (alternative RISC-V)
+5. **Post-v20.4:** ESP-TEE (experimental embedded TEE)
+
+See [`TEE_MIGRATION_GUIDE.md`](TEE_MIGRATION_GUIDE.md) for implementation details.
+
+---
+
 ## Attack Mitigation Matrix
 
 | Attack Vector | Primary Defense | Secondary Defense |

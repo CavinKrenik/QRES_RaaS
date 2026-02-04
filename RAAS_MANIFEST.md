@@ -1,6 +1,6 @@
 # RaaS Manifest: Resource-Aware Agentic Swarm
 
-**Version:** 19.0.1
+**Version:** 20.0.0
 **Author:** Cavin Krenik
 **Reference Implementation:** QRES (`crates/qres_core`)
 

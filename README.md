@@ -1,6 +1,6 @@
 # QRES &mdash; RaaS: Resource-Aware Agentic Swarm
 
-[![v19.0.1](https://img.shields.io/badge/version-19.0.1-blue.svg)](https://github.com/CavinKrenik/QRES_RaaS/releases)
+[![v20.0](https://img.shields.io/badge/version-20.0-blue.svg)](https://github.com/CavinKrenik/QRES_RaaS/releases)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18193905-blue)](https://doi.org/10.5281/zenodo.18193905)
 [![Paper](https://img.shields.io/badge/Paper-RaaS%3A%20Resource--Aware%20Agentic%20Swarm-green.svg)](https://doi.org/10.5281/zenodo.18474976)
 [![no_std](https://img.shields.io/badge/no_std-compatible-green.svg)](https://docs.rust-embedded.org/book/intro/no-std.html)
@@ -10,6 +10,8 @@
 > **A decentralized operating system for autonomous agents on physical hardware with finite energy, unreliable links, and adversarial peers.**
 
 RaaS (Resource-Aware Agentic Swarm) enforces three architectural pillars for survival: **Energy-Bounded Agency** (every operation is gated by energy accounting), **Verifiable Integrity** (cryptographic proofs without central trust), and **Autonomous Triage** (self-organizing regime switching). The reference implementation (QRES) uses deterministic rematerialization and Q16.16 fixed-point consensus to achieve 99% bandwidth reduction vs federated learning while tolerating 30% Byzantine attackers.
+
+**v20.0 "Cognitive Mesh"** introduces cross-modal temporal attention fusion (TAAF) with event-driven sparse spiking, achieving a **3.6% error improvement over v19** (0.0351 RMSE floor, max drift 0.0005). The Adaptive Exponent (Rule 4) scales reputation weighting by swarm size: 2.0 for small (<20 nodes), 3.0 for medium, 3.5 for large (>50 nodes). Influence is capped at `rep^3 * 0.8` to mitigate Slander-Amplification. Lamarckian recovery verified at 4% error delta across 8 brownout/recovery cycles with zero catastrophic knowledge loss.
 
 **Architectural Scope:**
 Read **[SCOPE.md](./docs/SCOPE.md)** before deployment or evaluation. QRES is intentionally narrow.
@@ -55,7 +57,7 @@ stateDiagram-v2
 
 ---
 
-## Verified Performance (v19.0.1)
+## Verified Performance (v20.0 "Cognitive Mesh")
 
 ![Consensus Evolution](docs/images/consensus_evolution.gif)
 
@@ -69,6 +71,10 @@ stateDiagram-v2
 | **Byzantine Tolerance** | Drift < 5% at 30% coordinated bias | Coordinate-wise trimmed mean |
 | **Energy** | 21.9x advantage (SNN vs ANN) | Verified in simulation collapse test |
 | **TWT Sleep Savings** | 82% reduction in radio energy | MockRadio verified over 24h simulated period |
+| **Multimodal RMSE** | 0.0351 (3.6% gain over v19) | 10/10 verification tests green |
+| **Max Drift** | 0.0005 | Across all tested configurations |
+| **Lamarckian Recovery** | 4% error delta, 8 cycles | Zero catastrophic knowledge loss |
+| **Adaptive Exponent** | 3.5 for >50 nodes, Gini <0.7 | 24 configs tested, no echo chambers |
 
 ---
 
@@ -83,6 +89,7 @@ QRES_RaaS/
 │   │   ├── consensus/       # Byzantine-tolerant aggregation (Krum, trimmed mean)
 │   │   ├── power/           # TWT scheduler, reputation-weighted sleep
 │   │   ├── packet/          # MTU fragmentation, GhostUpdate gossip
+│   │   ├── semantic.rs       # HSTP semantic envelopes (JSON-LD, RDF, W3C DID)
 │   │   └── ...              # ZK proofs, secure aggregation, privacy, reputation
 │   ├── qres_daemon/         # P2P edge daemon (libp2p gossipsub + REST API)
 │   └── qres_wasm/           # WebAssembly bindings
@@ -105,6 +112,7 @@ A `no_std` Rust library. All consensus math uses Q16.16 fixed-point (`I16F16`) f
 - **Zero-Knowledge Integrity** &mdash; Non-interactive Sigma protocol over Edwards curves
 - **Secure Aggregation** &mdash; Pairwise x25519 masking with wrapping cancellation
 - **Energy Accounting** &mdash; Deterministic energy pools with hardware-calibrated profiles
+- **Semantic Middleware** &mdash; HSTP-aligned JSON-LD envelopes with W3C DID and RDF provenance for cross-swarm gene discovery (IEEE 7007-2021)
 
 ### The Mind: `swarm_sim`
 
@@ -158,7 +166,7 @@ All tiers share the same `qres_core` binary. Hardware-specific behavior is isola
 # Core crate (no_std)
 cargo build -p qres_core --no-default-features --release
 
-# Full test suite (81 tests passing: unit + integration + v19 verification)
+# Full test suite (134 tests passing: unit + integration + v20 verification)
 cargo test -p qres_core --features std
 
 # TWT scheduler tests specifically
@@ -197,6 +205,9 @@ cargo run -p swarm_sim --release
 | **Power Management** | [TWT_INTEGRATION.md](docs/power/TWT_INTEGRATION.md) |
 | **Implementation** | [P2P_IMPLEMENTATION.md](docs/guides/P2P_IMPLEMENTATION.md), [SECURITY_GUIDE.md](docs/guides/SECURITY_IMPLEMENTATION_GUIDE.md) |
 | **Benchmarks** | [BENCHMARKS.md](docs/BENCHMARKS.md), [CLOUD_RESULTS.md](docs/CLOUD_BENCHMARK_RESULTS.md) |
+| **Adaptive Tuning** | [META_TUNING.md](docs/adaptive/META_TUNING.md), [SENSITIVITY_ANALYSIS.md](docs/SENSITIVITY_ANALYSIS.md) |
+| **Formal Verification** | [FORMAL_SPEC.md](docs/verification/FORMAL_SPEC.md) (TLA+ regime transition, Q2 2026 model checking) |
+| **Interoperability** | [semantic.rs](crates/qres_core/src/semantic.rs) (HSTP envelopes, JSON-LD, W3C DID, RDF provenance) |
 | **Process** | [CONTRIBUTING.md](docs/CONTRIBUTING.md), [SCOPE.md](docs/SCOPE.md), [SECURITY_ROADMAP.md](docs/SECURITY_ROADMAP.md) |
 | **RaaS Thesis** | [RAAS_MANIFEST.md](RAAS_MANIFEST.md) |
 
@@ -243,4 +254,4 @@ This repository contains the full artifacts, data, and source for the RaaS paper
 
 ---
 
-**Status**: v19.0.1 "Secure & Safe" - High-Integrity Hardening Complete. Formally verified (TLA+), cryptographically secure (ZK-proofs), energy-aware (TWT scheduling). Ready for edge-case evaluation and hardware-in-the-loop deployment.
+**Status**: v20.0 "Cognitive Mesh" - Simulation-Hardened. Multimodal TAAF with event-driven sparse spiking (0.0351 RMSE, 3.6% gain over v19). Adaptive reputation exponent (2.0/3.0/3.5 by swarm size). Influence-capped at rep^3 * 0.8. HSTP semantic middleware for cross-swarm gene discovery (JSON-LD + W3C DID + RDF provenance). TLA+ formal specification drafted (Q2 2026 model checking target). Cryptographically secure (ZK-proofs), energy-aware (TWT scheduling). Ready for hardware-in-the-loop deployment on ESP32-C6.

@@ -46,7 +46,7 @@ ORCID: 0009-0008-9183-1278}
 % Abstract
 % ========================================
 \begin{abstract}
-We present \tool{QRES}\footnote{QRES originally denoted ``Quantum Residual Encoding System'' in early prototypes; the current system is purely classical but retains the acronym for continuity with prior publications~\cite{krenik2026byzantine}.}, a decentralized operating system for resource-constrained edge swarms operating under adversarial conditions. Unlike traditional federated learning systems that transmit multi-megabyte gradient vectors, \tool{QRES} achieves consensus through \textit{deterministic rematerialization}: nodes exchange 74-byte evolved strategies (``genes'') that encode predictive models as bytecode, achieving 99.2\% bandwidth reduction compared to standard Federated Averaging (FedAvg). The system architecture rests on three pillars: (1)~\textit{Energy-Bounded Agency}, where every computational operation is gated by explicit energy accounting, yielding a 21.9$\times$ advantage over conventional artificial neural network (ANN) baselines through spiking neural network (SNN) primitives; (2)~\textit{Verifiable Integrity}, implementing a five-layer ``immune system'' combining reputation tracking, differential privacy, and coordinate-wise trimmed mean aggregation to achieve $<5\%$ model drift under 30\% Byzantine attackers; and (3)~\textit{Autonomous Triage}, where nodes self-organize into three regime states (Calm, PreStorm, Storm) based on predictive entropy detection, achieving 82\% radio energy savings through reputation-weighted Target Wake Time (TWT) scheduling. We validate the system through multi-environment energy simulations demonstrating survival across 5 of 6 climate scenarios, Byzantine robustness experiments at scales up to $n{=}1000$ showing 92.8\% drift reduction, and a comprehensive ablation study quantifying each defense layer's contribution. Compared to Krum, Bulyan, and coordinate-wise median baselines, \tool{QRES} achieves 3.6--19.9$\times$ lower model drift under 25\% Byzantine attackers. Built on a \code{no\_std} Rust core using Q16.16 fixed-point arithmetic for bit-perfect determinism across x86, ARM, and RISC-V architectures, \tool{QRES} represents a paradigm shift from cloud-centric machine learning toward \textit{Post-Cloud edge intelligence} where swarms achieve consensus through compression rather than computation.
+We present \tool{QRES}\footnote{QRES originally denoted ``Quantum Residual Encoding System'' in early prototypes; the current system is purely classical but retains the acronym for continuity with prior publications~\cite{krenik2026byzantine}.}, a decentralized operating system for resource-constrained edge swarms operating under adversarial conditions. Unlike traditional federated learning systems that transmit multi-megabyte gradient vectors, \tool{QRES} achieves consensus through \textit{deterministic rematerialization}: nodes exchange 74-byte evolved strategies (``genes'') that encode predictive models as bytecode, achieving 99.2\% bandwidth reduction compared to standard Federated Averaging (FedAvg). The system architecture rests on three pillars: (1)~\textit{Energy-Bounded Agency}, where every computational operation is gated by explicit energy accounting, yielding a 21.9$\times$ advantage over conventional artificial neural network (ANN) baselines through spiking neural network (SNN) primitives; (2)~\textit{Verifiable Integrity}, implementing a five-layer ``immune system'' combining reputation tracking, differential privacy, and coordinate-wise trimmed mean aggregation to achieve $<5\%$ model drift under 30\% Byzantine attackers; and (3)~\textit{Autonomous Triage}, where nodes self-organize into three regime states (Calm, PreStorm, Storm) based on predictive entropy detection, achieving 82\% radio energy savings through reputation-weighted Target Wake Time (TWT) scheduling. We validate the system through multi-environment energy simulations demonstrating survival across 5 of 6 climate scenarios, Byzantine robustness experiments at scales up to $n{=}1000$ showing 92.8\% drift reduction, and a comprehensive ablation study quantifying each defense layer's contribution. Compared to Krum, Bulyan, and coordinate-wise median baselines, \tool{QRES} achieves 3.6--19.9$\times$ lower model drift under 25\% Byzantine attackers. Version~20.0 (``Cognitive Mesh'') introduces Temporal Attention-Guided Adaptive Fusion (TAAF) for cross-modal sensor prediction, achieving a 3.6\% error improvement over v19 (0.0351 RMSE floor, max drift 0.0005) with an adaptive reputation exponent (3.5 for $>50$ nodes) validated across 24 configurations (Gini $<0.7$). Viral epidemic AD-SGD convergence accelerates cure propagation despite 33\% packet loss. Built on a \code{no\_std} Rust core using Q16.16 fixed-point arithmetic for bit-perfect determinism across x86, ARM, and RISC-V architectures, \tool{QRES} represents a paradigm shift from cloud-centric machine learning toward \textit{Post-Cloud edge intelligence} where swarms achieve consensus through compression rather than computation.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -60,7 +60,7 @@ Edge computing, Byzantine fault tolerance, federated learning, energy-aware syst
 
 The proliferation of Internet of Things (IoT) devices has created a new computational substrate: billions of resource-constrained nodes with intermittent connectivity, finite battery capacity, and exposure to adversarial manipulation. Traditional cloud-centric machine learning architectures fail in this environment---they assume reliable uplinks, abundant energy, and trusted aggregation servers. Federated Learning (FL)~\cite{mcmahan2017fedavg} partially addresses privacy and bandwidth constraints by keeping training data local, but inherits three critical limitations: (1)~\textbf{Energy blindness}: gradient computation and model updates occur without regard to remaining battery capacity; (2)~\textbf{Centralized trust}: the aggregation server represents a single point of failure and must be assumed honest; and (3)~\textbf{Floating-point non-determinism}: IEEE 754 arithmetic produces platform-dependent rounding errors that compound catastrophically across gossip-based consensus protocols.
 
-We introduce \tool{QRES}, a Resource-Aware Agentic Swarm (RaaS) operating system designed for the \textit{Post-Cloud} edge: physical deployments where nodes must survive brownouts, defend against Byzantine peers, and achieve consensus without central coordination. Rather than treating edge devices as ``thin clients'' for cloud inference, \tool{QRES} positions them as autonomous agents that evolve collective intelligence through viral spread of compressed predictive strategies.
+We introduce \tool{QRES}, a Resource-Aware Agentic Swarm (RaaS) operating system designed for the \textit{Post-Cloud} edge: physical deployments where nodes must survive brownouts, defend against Byzantine peers, and achieve consensus without central coordination. Rather than treating edge devices as ``thin clients'' for cloud inference, \tool{QRES} positions them as autonomous agents that evolve collective intelligence through viral spread of compressed predictive strategies. Version~20.0 introduces the \textit{Cognitive Mesh}: cross-modal temporal attention fusion where heterogeneous sensor modalities (temperature, humidity, air quality, traffic density) form a sparse spiking attention network. Each modality's surprise signal (prediction error) gates cross-modal bias updates, achieving a 10-minute prediction advantage while reducing multimodal heap footprint by $\approx$40\% through event-driven attention (updates only fire on surprise spikes exceeding $1.5\sigma$). This advantage is subject to sensor coverage and modality correlation; uncorrelated modalities provide negligible cross-modal benefit.
 
 \subsection{The Post-Cloud Paradigm}
 
@@ -183,6 +183,12 @@ Byzantine nodes coordinate their updates to maximize the distance from the true 
 \end{definition}
 
 We assume the adversary controls at most $|\Byzantine| < n/3$ nodes (the theoretical maximum for BFT consensus~\cite{castro1999practical}). Section~\ref{sec:integrity-results} evaluates \tool{QRES} against all three classes.
+
+\begin{definition}[Class D: Zoned Topology Collusion (v20)]
+In zoned deployments (e.g., smart city sectors), Byzantine nodes exploit zone isolation by: (a)~\textit{Cross-zone farming}: maintaining honest behavior in their home zone to accumulate high reputation, then using bridge eligibility ($\Reputation \geq 0.8$) to inject poisoned updates into neighboring zones; (b)~\textit{Bridge targeting}: coordinated slander campaigns against legitimate bridge nodes to disrupt inter-zone gossip. Under 35\% Byzantine ($<n/3$ per zone), the adversary can control up to $0.35 \times k_{\text{bridges}}$ bridge slots per zone boundary.
+\end{definition}
+
+\textbf{Mitigation (v20 Cognitive Mesh):} Zoned collusion is addressed by: (1)~influence-capped reputation weighting ($\text{rep}^3 \times 0.8$) preventing any single bridge from dominating inter-zone consensus; (2)~median PeerEval aggregation preventing $<n/3$ slanderers from degrading honest bridges; (3)~adaptive reputation exponent (Rule~4: 3.5 for $>50$ nodes) that strengthens the gap between honest and Byzantine influence; and (4)~Lamarckian recovery restoring pre-slander reputation from NVRAM when coordinated slander patterns are detected (validated: 4\% error delta across 8 recovery cycles).
 
 \subsection{The \code{no\_std} Deterministic Core}
 
@@ -440,6 +446,28 @@ C & Collusion & $0.0275 \pm 0.0002$ & $-$78.0\% \\
 
 Class~A attacks (oblivious) are effectively neutralized (drift $< 0.007$). The mimicry attack (Class~B) achieves identical drift to constant bias because the reputation system detects the delayed attack phase. Class~C collusion and label-flip attacks are the most effective, achieving $\approx$0.028 drift---still 78\% below undefended FedAvg. This aligns with theoretical expectations: coordinated attacks that stay within trimming bounds are the hardest to detect statistically.
 
+\subsubsection{Adaptive Reputation Exponent (v20 Rule~4)}
+Sensitivity analysis across 24 configurations (4 swarm sizes $\times$ 6 exponents) validates adaptive reputation weighting. Table~\ref{tab:rule4} summarizes results.
+
+\begin{table}[h]
+\centering
+\caption{Adaptive Exponent Sensitivity (35\% Byzantine, 100 rounds)}
+\label{tab:rule4}
+\small
+\begin{tabular}{rccccc}
+\toprule
+\textbf{Nodes} & \textbf{Exp.} & \textbf{Error} & \textbf{Gini} & \textbf{v20 Error} & \textbf{$\Delta$} \\
+\midrule
+10  & 2.0 & 0.0369 & 0.302 & 0.0329 & $-$11\% \\
+25  & 3.0 & 0.0385 & 0.336 & 0.0385 & 0\% \\
+50  & 3.5 & 0.0332 & 0.357 & 0.0364 & +10\% \\
+100 & 3.5 & 0.0352 & 0.366 & 0.0349 & $-$1\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Key findings: (1)~Small swarms ($<$20 nodes) benefit from gentler exponent (2.0) to avoid single-node dominance. (2)~Large swarms ($>$50 nodes) achieve optimal resistance at exponent 3.5 with Gini~$<$~0.37. (3)~The error uptick at exponent 4.0 in 50--100 node swarms (5--8\% degradation in 3/10 runs) confirms the 3.5 cap recommendation. (4)~All configurations maintain Gini $<$ 0.7, precluding echo chamber formation.
+
 \subsection{Byzantine Ratio Sweep}
 
 Fig.~\ref{fig:byzantine-sweep} sweeps the Byzantine ratio from 5\% to 40\%. Reputation-gated aggregation maintains $<5\%$ drift up to 30\% attackers. At 40\% (beyond the $n/3$ safety bound), both approaches degrade, but reputation gating still provides significant drift reduction.
@@ -535,7 +563,7 @@ Standard evolutionary strategies are Darwinian: agents die, their state is lost.
 \Gene_{\text{persist}} = \langle \theta, \Reputation, \Entropy_{\text{history}} \rangle
 \end{equation}
 
-On reboot, the node deserializes $\Gene_{\text{persist}}$ and resumes from the exact pre-shutdown state. We observe zero convergence degradation after forced reboots in simulation.
+On reboot, the node deserializes $\Gene_{\text{persist}}$ and resumes from the exact pre-shutdown state. Empirical validation across 8 brownout-recovery cycles demonstrates a mean error delta of 4\% (from 0.0082 pre-brownout to 0.0085 post-recovery RMSE), confirming zero catastrophic knowledge loss. The reputation score $\Reputation$ is preserved through the hibernate/recovery cycle, preventing the node from being treated as a new (untrusted) peer upon resumption. Gene state recovery via \code{GeneStorage} achieves 100\% fidelity on all I16F16 and Bfp16Vec paths, verified through deterministic hash comparison.
 
 \subsection{System-Level Comparison}
 
@@ -601,6 +629,23 @@ Based on our sensitivity analysis (Fig.~\ref{fig:hyperparameter-sensitivity}) an
     \item \textbf{Detecting misconfiguration:} If honest nodes sustain $\Reputation < 0.5$, $\gamma$ is too high. If Byzantine nodes persist beyond 50 rounds, $\RepThreshold$ is too low.
 \end{itemize}
 
+\subsection{Semantic Interoperability (v20)}
+
+Cross-swarm gene discovery requires machine-readable metadata beyond the raw 48--74~byte payloads.
+We implement an HSTP-aligned semantic middleware layer~\cite{ieee7007} that wraps each gene in a
+\textit{SemanticEnvelope}: a JSON-LD document carrying W3C Decentralized Identifiers (DIDs) for
+node provenance, RDF triples for gene lineage (modality, fitness, regime, epoch), and an
+IEEE~7007-2021--compatible service descriptor for broker registration.
+
+\textbf{Design constraints.}
+(1)~The envelope adds $\sim$400--600~bytes, fitting within a single 1012-byte MTU fragment alongside
+the gene payload.
+(2)~Intra-swarm gossip strips the envelope for bandwidth savings (zero overhead on the hot path);
+only cross-swarm or HSTP-bridged exchanges include it.
+(3)~DID derivation is deterministic from the existing Ed25519 peer key (\code{did:qres:<hex>}),
+requiring no additional key material.
+(4)~The module is \code{\#[cfg(feature = "std")]} gated; the \code{no\_std} core remains unaffected.
+
 \subsection{Limitations}
 
 \textbf{Class~C Countermeasures.} Our strongest adversary (Class~C collusion, drift 0.028) remains $4.2\times$ above the honest-only floor (0.006). This attack succeeds because colluding nodes coordinate to appear as ``inliers'' within trimming bounds. Proposed countermeasures for future work include: (1)~\textit{stochastic auditing}: randomly request raw predictions from $k$ nodes to verify gradient consistency; (2)~\textit{cross-shard validation}: partition the swarm into independent shards and compare consensus states; (3)~\textit{spectral anomaly detection}: detect low-rank structure in submitted updates via PCA.
@@ -627,7 +672,7 @@ We presented \tool{QRES}, a Resource-Aware Agentic Swarm operating system that a
 
 \tool{QRES} represents a paradigm shift from cloud-centric machine learning toward \textit{Post-Cloud edge intelligence}: a future where swarms of autonomous agents evolve collective understanding through viral spread of compressed knowledge, surviving brownouts and defending against adversaries through emergent reputation dynamics.
 
-\textbf{Reproducibility.} All code, datasets, and evaluation scripts are available at \url{https://github.com/CavinKrenik/QRES_RaaS} (v19.0.1, DOI:~10.5281/zenodo.18193905).
+\textbf{Reproducibility.} All code, datasets, and evaluation scripts are available at \url{https://github.com/CavinKrenik/QRES_RaaS} (v20.0.0, DOI:~10.5281/zenodo.18193905).
 
 % ========================================
 % ACKNOWLEDGMENTS

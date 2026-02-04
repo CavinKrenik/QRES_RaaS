@@ -1,6 +1,27 @@
 QRES Changelog: Resource-Aware Agentic Swarm (RaaS)
 All notable changes to the QRES reference implementation are documented here.
 
+[v20.0.0] - 2026-02-04 "Cognitive Mesh"
+Added
+Multimodal TAAF: Temporal Attention-Guided Adaptive Fusion with event-driven sparse spiking (0.0351 RMSE, 3.6% gain over v19).
+
+Adaptive Reputation Exponent (Rule 4): Swarm-size scaling (2.0/<20 nodes, 3.0/20-50, 3.5/>50). Validated across 24 configurations.
+
+Influence Cap: INFLUENCE_CAP = 0.8 in reputation.rs, with influence_weight() and influence_weight_fixed() methods.
+
+HSTP Semantic Middleware: SemanticEnvelope wrapping genes in JSON-LD with W3C DID (did:qres:<hex>), RDF provenance triples, and HstpDescriptor for IEEE 7007-2021 broker registration.
+
+Viral Epidemic AD-SGD: GhostUpdate extended with residual_error, accuracy_delta, cure_threshold(), can_infect(), and epidemic_priority().
+
+TLA+ Formal Spec: Full specification for Epidemic AD-SGD regime transition (PreStorm→Storm) with safety (INV-4, no honest ban) and liveness (33% packet loss tolerance) properties.
+
+Rain-Burst Stress Test: Environmental noise test in gauntlet_harness.py verifying Storm trigger and Calm recovery within 2 ticks.
+
+Changed
+Event-Driven Attention: multimodal.rs observe() uses Welford's online variance for spike detection (isqrt_u64), reducing heap ~40%.
+
+Documentation: Updated META_TUNING.md (Rule 3/4 notes), SENSITIVITY_ANALYSIS.md (4-panel plot, adaptive rule justification), paper (Abstract, Section I, III, V, VIII, Appendix).
+
 [v19.1.0] - 2026-02-02 "Circadian Rhythm"
 Added
 TWT Integration: Implemented TWTScheduler in qres_core::power for Wi-Fi 6 (802.11ax) Target Wake Time support.

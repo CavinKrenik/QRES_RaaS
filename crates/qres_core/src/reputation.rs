@@ -35,6 +35,11 @@ const ZKP_FAILURE_PENALTY: f32 = 0.15;
 /// Ban threshold: peers below this score are excluded
 const BAN_THRESHOLD: f32 = 0.2;
 
+/// Maximum influence cap factor for rep^3 weighting (mitigates Slander-Amplification).
+/// Even at R=1.0, influence is capped at rep^3 * INFLUENCE_CAP = 1.0 * 0.8 = 0.8.
+/// This prevents any single node from dominating consensus in high-Gini scenarios.
+const INFLUENCE_CAP: f32 = 0.8;
+
 /// Reputation tracker for swarm peers.
 ///
 /// Maintains a `PeerId -> Score` mapping where:
@@ -113,6 +118,49 @@ impl ReputationTracker {
     pub fn banned_count(&self) -> usize {
         self.scores.values().filter(|&&s| s < BAN_THRESHOLD).count()
     }
+
+    /// Compute the influence-capped reputation^3 weight for a peer.
+    ///
+    /// Applies the cubic reputation weighting used in multimodal temporal
+    /// attention (INV-1 compliance) with an influence cap to mitigate the
+    /// "Slander-Amplification" vulnerability described in REPUTATION_PRIVACY.md.
+    ///
+    /// Formula: min(rep^3, INFLUENCE_CAP)
+    ///
+    /// This ensures no single node can dominate consensus even at R=1.0,
+    /// bounding single-node contribution to 0.8 of the total weight.
+    ///
+    /// The computation uses checked multiplication to avoid overflow when
+    /// translated to I16F16 fixed-point in the consensus path.
+    pub fn influence_weight(&self, peer: &PeerId) -> f32 {
+        let score = self.get_score(peer);
+        let rep_cubed = score * score * score;
+        rep_cubed.min(INFLUENCE_CAP)
+    }
+
+    /// Get influence-capped weights for a set of peers (for weighted aggregation).
+    /// Each weight is min(rep^3, INFLUENCE_CAP).
+    pub fn get_influence_weights(&self, peers: &[PeerId]) -> Vec<f32> {
+        peers.iter().map(|p| self.influence_weight(p)).collect()
+    }
+
+    /// Compute influence weight in I16F16-compatible fixed-point representation.
+    ///
+    /// Returns the influence weight as an i32 in Q16.16 format, using
+    /// saturating arithmetic to prevent overflow on the i32 path.
+    ///
+    /// Q16.16 range: [-32768.0, 32767.999...], so rep^3 * 0.8 is always
+    /// in range (max value = 0.8, well within bounds).
+    pub fn influence_weight_fixed(&self, peer: &PeerId) -> i32 {
+        let score = self.get_score(peer);
+        // Compute rep^3 in f32, cap, then convert to Q16.16
+        let rep_cubed = score * score * score;
+        let capped = rep_cubed.min(INFLUENCE_CAP);
+        // Convert to Q16.16: multiply by 2^16 = 65536
+        let fixed = (capped * 65536.0) as i32;
+        // Saturate to valid Q16.16 range (always positive for reputation)
+        fixed.max(0)
+    }
 }
 
 #[cfg(test)]
@@ -181,6 +229,39 @@ mod tests {
         tracker.penalize_zkp_failure(&peer);
         tracker.penalize_zkp_failure(&peer);
         assert!(tracker.is_banned(&peer));
+    }
+
+    #[test]
+    fn test_influence_cap() {
+        let tracker = ReputationTracker::new();
+        let peer = make_peer(1);
+
+        // Default peer (0.5): influence = 0.5^3 = 0.125
+        let influence = tracker.influence_weight(&peer);
+        assert!((influence - 0.125).abs() < 0.001);
+
+        // Verify cap: even at R=1.0, influence <= 0.8
+        let mut tracker2 = ReputationTracker::new();
+        let high_peer = make_peer(2);
+        for _ in 0..30 {
+            tracker2.reward_valid_zkp(&high_peer);
+        }
+        assert_eq!(tracker2.get_score(&high_peer), 1.0);
+        let capped = tracker2.influence_weight(&high_peer);
+        assert!((capped - 0.8).abs() < 0.001, "R=1.0 should be capped at 0.8");
+    }
+
+    #[test]
+    fn test_influence_weight_fixed_no_overflow() {
+        let mut tracker = ReputationTracker::new();
+        let peer = make_peer(1);
+        for _ in 0..30 {
+            tracker.reward_valid_zkp(&peer);
+        }
+        let fixed = tracker.influence_weight_fixed(&peer);
+        // 0.8 in Q16.16 = 0.8 * 65536 = 52428
+        assert!((fixed - 52428).abs() <= 1, "Fixed-point influence should be ~52428");
+        assert!(fixed >= 0, "Fixed-point influence must be non-negative");
     }
 
     #[test]

@@ -793,6 +793,8 @@ mod tests {
                 response: Scalar::ZERO,
             },
             dp_epsilon: 1.0,
+            residual_error: 0.0,
+            accuracy_delta: 0.0,
         }
     }
 
