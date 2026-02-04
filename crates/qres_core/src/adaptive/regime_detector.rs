@@ -16,6 +16,105 @@ pub enum RegimeChange {
     Drift { current_error: f32, threshold: f32 },
 }
 
+// ============================================================================
+// Regime Consensus Gate (INV-4: No regime escalation by untrusted quorum)
+// ============================================================================
+
+/// A vote from a node confirming an entropy spike for regime transition.
+#[derive(Debug, Clone, Copy)]
+pub struct RegimeVote {
+    /// Node identifier
+    pub node_id: u32,
+    /// Round/epoch when this vote was cast
+    pub round: u64,
+    /// Observed entropy derivative by this node
+    pub entropy_derivative: f32,
+    /// Reputation of the voting node at time of vote
+    pub reputation: f32,
+}
+
+/// Configuration for the regime consensus gate.
+#[derive(Debug, Clone)]
+pub struct RegimeConsensusConfig {
+    /// Minimum number of high-reputation nodes required to confirm Storm
+    pub min_trusted_confirmations: usize,
+    /// Minimum reputation required for a vote to count as "trusted"
+    pub min_vote_reputation: f32,
+    /// Maximum age of a vote (in rounds) before it expires
+    pub vote_window_rounds: u64,
+}
+
+impl Default for RegimeConsensusConfig {
+    fn default() -> Self {
+        Self {
+            min_trusted_confirmations: 3,
+            min_vote_reputation: 0.8,
+            vote_window_rounds: 10,
+        }
+    }
+}
+
+/// Manages regime transition consensus votes.
+/// Storm transitions require confirmation by a trusted quorum.
+pub struct RegimeConsensusGate {
+    config: RegimeConsensusConfig,
+    votes: Vec<RegimeVote>,
+}
+
+impl RegimeConsensusGate {
+    pub fn new(config: RegimeConsensusConfig) -> Self {
+        Self {
+            config,
+            votes: Vec::new(),
+        }
+    }
+
+    /// Submit a vote for Storm transition.
+    /// Votes are bound to a specific round to prevent replay.
+    pub fn submit_vote(&mut self, vote: RegimeVote) {
+        // Prevent duplicate votes from the same node in the same round
+        let already_voted = self.votes.iter().any(|v| {
+            v.node_id == vote.node_id && v.round == vote.round
+        });
+        if !already_voted {
+            self.votes.push(vote);
+        }
+    }
+
+    /// Evaluate whether Storm transition is authorized.
+    /// Returns true only if enough high-reputation nodes confirm the entropy spike.
+    pub fn is_storm_authorized(&self, current_round: u64, entropy_derivative_threshold: f32) -> bool {
+        let trusted_confirmations = self.votes.iter().filter(|v| {
+            // Vote must be recent (within window)
+            let age = current_round.saturating_sub(v.round);
+            age <= self.config.vote_window_rounds
+            // Reporter must be high-reputation
+            && v.reputation >= self.config.min_vote_reputation
+            // Reporter must have observed a genuine spike
+            && v.entropy_derivative > entropy_derivative_threshold
+        }).count();
+
+        trusted_confirmations >= self.config.min_trusted_confirmations
+    }
+
+    /// Prune expired votes to prevent unbounded memory growth.
+    pub fn prune_expired(&mut self, current_round: u64) {
+        self.votes.retain(|v| {
+            current_round.saturating_sub(v.round) <= self.config.vote_window_rounds
+        });
+    }
+
+    /// Number of currently valid trusted votes.
+    pub fn trusted_vote_count(&self, current_round: u64, entropy_derivative_threshold: f32) -> usize {
+        self.votes.iter().filter(|v| {
+            let age = current_round.saturating_sub(v.round);
+            age <= self.config.vote_window_rounds
+                && v.reputation >= self.config.min_vote_reputation
+                && v.entropy_derivative > entropy_derivative_threshold
+        }).count()
+    }
+}
+
 pub struct RegimeDetector {
     window_size: usize,
     history: Vec<f32>,
@@ -250,6 +349,31 @@ impl RegimeDetector {
         result
     }
 
+    /// Update regime with consensus gate for Storm transitions (INV-4).
+    ///
+    /// Same as `update()` but Storm transition requires authorization from
+    /// the `RegimeConsensusGate`. If Storm is indicated by local entropy but
+    /// the trusted quorum has not confirmed, the regime stays at PreStorm.
+    pub fn update_with_consensus(
+        &mut self,
+        entropy: f32,
+        packet_size: usize,
+        now_ms: u64,
+        consensus_gate: &RegimeConsensusGate,
+        current_round: u64,
+    ) {
+        // Run normal update logic first
+        self.update(entropy, packet_size, now_ms);
+
+        // If update() set Storm, check consensus gate
+        if self.current_regime == Regime::Storm {
+            if !consensus_gate.is_storm_authorized(current_round, self.entropy_derivative_threshold) {
+                // Storm not authorized by trusted quorum -- downgrade to PreStorm
+                self.current_regime = Regime::PreStorm;
+            }
+        }
+    }
+
     pub fn reset(&mut self) {
         self.sum = 0.0;
         self.sum_sq = 0.0;
@@ -269,5 +393,191 @@ impl RegimeDetector {
         self.prev_smoothed_entropy = 0.0;
         // Reset silence tracking
         self.calm_observation_count = 0;
+    }
+}
+
+// ============================================================================
+// Tests for Regime Consensus Gate
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_storm_denied_without_trusted_quorum() {
+        // INV-4: Low-rep nodes cannot force Storm
+        let config = RegimeConsensusConfig::default();
+        let mut gate = RegimeConsensusGate::new(config);
+
+        // 10 low-rep nodes vote for Storm
+        for i in 0..10 {
+            gate.submit_vote(RegimeVote {
+                node_id: i,
+                round: 5,
+                entropy_derivative: 0.5,
+                reputation: 0.3, // Below min_vote_reputation (0.8)
+            });
+        }
+
+        assert!(
+            !gate.is_storm_authorized(5, 0.1),
+            "Low-rep votes should not authorize Storm"
+        );
+    }
+
+    #[test]
+    fn test_storm_authorized_with_trusted_quorum() {
+        let config = RegimeConsensusConfig::default();
+        let mut gate = RegimeConsensusGate::new(config);
+
+        // 3 high-rep nodes confirm entropy spike
+        for i in 0..3 {
+            gate.submit_vote(RegimeVote {
+                node_id: i,
+                round: 5,
+                entropy_derivative: 0.5,
+                reputation: 0.95,
+            });
+        }
+
+        assert!(
+            gate.is_storm_authorized(5, 0.1),
+            "3 trusted nodes should authorize Storm"
+        );
+    }
+
+    #[test]
+    fn test_storm_denied_partial_quorum() {
+        // 2 high-rep + 100 low-rep → still denied
+        let config = RegimeConsensusConfig::default();
+        let mut gate = RegimeConsensusGate::new(config);
+
+        // Only 2 trusted nodes
+        for i in 0..2 {
+            gate.submit_vote(RegimeVote {
+                node_id: i,
+                round: 5,
+                entropy_derivative: 0.5,
+                reputation: 0.95,
+            });
+        }
+
+        // 100 untrusted nodes
+        for i in 10..110 {
+            gate.submit_vote(RegimeVote {
+                node_id: i,
+                round: 5,
+                entropy_derivative: 0.5,
+                reputation: 0.3,
+            });
+        }
+
+        assert!(
+            !gate.is_storm_authorized(5, 0.1),
+            "2 high-rep + 100 low-rep should NOT authorize Storm"
+        );
+    }
+
+    #[test]
+    fn test_stale_votes_expire() {
+        let config = RegimeConsensusConfig {
+            vote_window_rounds: 5,
+            ..Default::default()
+        };
+        let mut gate = RegimeConsensusGate::new(config);
+
+        // Votes from round 1
+        for i in 0..3 {
+            gate.submit_vote(RegimeVote {
+                node_id: i,
+                round: 1,
+                entropy_derivative: 0.5,
+                reputation: 0.95,
+            });
+        }
+
+        // At round 1, should be authorized
+        assert!(gate.is_storm_authorized(1, 0.1));
+
+        // At round 10 (9 rounds later, beyond window of 5), should expire
+        assert!(
+            !gate.is_storm_authorized(10, 0.1),
+            "Stale votes should expire"
+        );
+    }
+
+    #[test]
+    fn test_no_duplicate_votes() {
+        let config = RegimeConsensusConfig {
+            min_trusted_confirmations: 2,
+            ..Default::default()
+        };
+        let mut gate = RegimeConsensusGate::new(config);
+
+        // Same node votes twice in same round
+        gate.submit_vote(RegimeVote {
+            node_id: 1,
+            round: 5,
+            entropy_derivative: 0.5,
+            reputation: 0.95,
+        });
+        gate.submit_vote(RegimeVote {
+            node_id: 1,
+            round: 5,
+            entropy_derivative: 0.5,
+            reputation: 0.95,
+        });
+
+        // Only 1 distinct trusted voter, need 2
+        assert!(
+            !gate.is_storm_authorized(5, 0.1),
+            "Duplicate votes should not count"
+        );
+    }
+
+    #[test]
+    fn test_update_with_consensus_blocks_storm() {
+        let mut detector = RegimeDetector::new(100, 2.5, 10000.0);
+        detector.set_entropy_derivative_threshold(0.1);
+
+        // Empty consensus gate (no votes)
+        let gate = RegimeConsensusGate::new(RegimeConsensusConfig::default());
+
+        // Feed high entropy that would normally trigger Storm
+        detector.update_with_consensus(3.0, 100, 1000, &gate, 1);
+        detector.update_with_consensus(3.5, 100, 2000, &gate, 2);
+        detector.update_with_consensus(4.0, 100, 3000, &gate, 3);
+
+        // Storm should be blocked → downgraded to PreStorm
+        assert_ne!(
+            detector.current_regime(),
+            Regime::Storm,
+            "Storm should be blocked without consensus"
+        );
+    }
+
+    #[test]
+    fn test_prune_expired_votes() {
+        let config = RegimeConsensusConfig {
+            vote_window_rounds: 3,
+            ..Default::default()
+        };
+        let mut gate = RegimeConsensusGate::new(config);
+
+        for i in 0..5 {
+            gate.submit_vote(RegimeVote {
+                node_id: i,
+                round: 1,
+                entropy_derivative: 0.5,
+                reputation: 0.95,
+            });
+        }
+
+        assert_eq!(gate.votes.len(), 5);
+
+        // Prune at round 10 (all votes from round 1 should be expired with window=3)
+        gate.prune_expired(10);
+        assert_eq!(gate.votes.len(), 0, "All expired votes should be pruned");
     }
 }

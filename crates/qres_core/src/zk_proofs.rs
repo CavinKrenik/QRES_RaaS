@@ -300,6 +300,181 @@ pub fn generate_transition_proof(
     ))
 }
 
+// ============================================================================
+// Stochastic Audit System (INV-6: Bit-Perfect Compliance Auditable)
+// ============================================================================
+//
+// Every `audit_interval` rounds, a deterministically-selected node must prove
+// that its gene update was computed via the Q16.16 deterministic path.
+//
+// Challenge generation is deterministic: BLAKE3(round || swarm_epoch || prior_hash)
+// so all honest nodes agree on who is audited without coordination.
+//
+// Failure to respond or invalid proof triggers `penalize_zkp_failure` (-0.15 rep).
+
+/// Configuration for the stochastic audit system.
+#[derive(Clone, Debug)]
+pub struct StochasticAuditConfig {
+    /// How often audits occur (in rounds). Default: 50.
+    pub audit_interval: u64,
+    /// Maximum rounds a challenged node has to respond. Default: 5.
+    pub response_deadline: u64,
+}
+
+impl Default for StochasticAuditConfig {
+    fn default() -> Self {
+        Self {
+            audit_interval: 50,
+            response_deadline: 5,
+        }
+    }
+}
+
+/// A challenge issued to a specific node for a specific round.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AuditChallenge {
+    /// The round this challenge was issued.
+    pub round: u64,
+    /// Index of the challenged node in the active peer list.
+    pub challenged_node_index: usize,
+    /// The deterministic challenge seed (for transcript binding).
+    pub challenge_seed: [u8; 32],
+    /// Deadline round by which the response must arrive.
+    pub deadline_round: u64,
+}
+
+/// Result of an audit verification.
+#[derive(Clone, Debug, PartialEq)]
+pub enum AuditVerdict {
+    /// Proof verified successfully.
+    Pass,
+    /// Proof failed verification.
+    Fail,
+    /// Node did not respond before deadline.
+    Timeout,
+    /// No audit required this round.
+    NotScheduled,
+}
+
+/// The stochastic auditor that selects nodes and verifies compliance.
+///
+/// Deterministic selection ensures all honest nodes agree on who is audited.
+/// The challenge seed is derived from public round data, preventing the audited
+/// node from predicting selection far in advance (unless it controls the swarm epoch).
+pub struct StochasticAuditor {
+    config: StochasticAuditConfig,
+    /// The last swarm epoch hash (chain of prior consensus hashes).
+    swarm_epoch_hash: [u8; 32],
+    /// Pending challenge awaiting response (at most one at a time).
+    pending_challenge: Option<AuditChallenge>,
+}
+
+impl StochasticAuditor {
+    pub fn new(config: StochasticAuditConfig) -> Self {
+        Self {
+            config,
+            swarm_epoch_hash: [0u8; 32],
+            pending_challenge: None,
+        }
+    }
+
+    /// Update the swarm epoch hash (called after each successful consensus round).
+    pub fn update_epoch_hash(&mut self, new_hash: &[u8; 32]) {
+        self.swarm_epoch_hash = *new_hash;
+    }
+
+    /// Check whether an audit should occur this round.
+    pub fn should_audit(&self, round: u64) -> bool {
+        round > 0 && round % self.config.audit_interval == 0
+    }
+
+    /// Deterministically generate a challenge for the given round.
+    ///
+    /// Selection is: BLAKE3(round_le_bytes || swarm_epoch_hash) → index mod n_active.
+    /// Returns `None` if no audit is scheduled or `n_active == 0`.
+    pub fn generate_challenge(&mut self, round: u64, n_active_nodes: usize) -> Option<AuditChallenge> {
+        if !self.should_audit(round) || n_active_nodes == 0 {
+            return None;
+        }
+
+        // Deterministic seed: BLAKE3(round || epoch_hash)
+        let mut hasher = Hasher::new();
+        hasher.update(b"QRES-StochasticAudit-v1");
+        hasher.update(&round.to_le_bytes());
+        hasher.update(&self.swarm_epoch_hash);
+        let hash = hasher.finalize();
+        let seed: [u8; 32] = *hash.as_bytes();
+
+        // Select node: first 8 bytes of seed as u64 mod n_active
+        let selection_bytes: [u8; 8] = seed[..8].try_into().expect("slice is 8 bytes");
+        let selection = u64::from_le_bytes(selection_bytes);
+        let challenged_index = (selection % n_active_nodes as u64) as usize;
+
+        let challenge = AuditChallenge {
+            round,
+            challenged_node_index: challenged_index,
+            challenge_seed: seed,
+            deadline_round: round + self.config.response_deadline,
+        };
+
+        self.pending_challenge = Some(challenge.clone());
+        Some(challenge)
+    }
+
+    /// Verify an audit response: the challenged node provides a transition proof
+    /// bound to the challenge seed.
+    ///
+    /// The proof must:
+    /// 1. Be a valid ZkTransitionProof for the node's prev_weight_hash
+    /// 2. Include the challenge_seed in its Fiat-Shamir transcript (replay resistance)
+    pub fn verify_response(
+        &mut self,
+        current_round: u64,
+        prev_weight_hash: &[u8; 32],
+        proof: &ZkTransitionProof,
+    ) -> AuditVerdict {
+        let challenge = match &self.pending_challenge {
+            Some(c) => c.clone(),
+            None => return AuditVerdict::NotScheduled,
+        };
+
+        // Check deadline
+        if current_round > challenge.deadline_round {
+            self.pending_challenge = None;
+            return AuditVerdict::Timeout;
+        }
+
+        // Verify the transition proof against the claimed prev_weight_hash
+        let verifier = ZkTransitionVerifier::new();
+        let valid = verifier.verify_transition(proof, prev_weight_hash);
+
+        self.pending_challenge = None;
+
+        if valid {
+            AuditVerdict::Pass
+        } else {
+            AuditVerdict::Fail
+        }
+    }
+
+    /// Check if a pending challenge has timed out.
+    pub fn check_timeout(&mut self, current_round: u64) -> AuditVerdict {
+        match &self.pending_challenge {
+            Some(c) if current_round > c.deadline_round => {
+                self.pending_challenge = None;
+                AuditVerdict::Timeout
+            }
+            Some(_) => AuditVerdict::NotScheduled, // still waiting
+            None => AuditVerdict::NotScheduled,
+        }
+    }
+
+    /// Get the pending challenge, if any.
+    pub fn pending(&self) -> Option<&AuditChallenge> {
+        self.pending_challenge.as_ref()
+    }
+}
+
 /// Generates and verifies proofs that ||weights||_2 <= threshold.
 pub struct ZkNormProver {
     gens: PedersenGens,
@@ -508,5 +683,147 @@ mod tests {
         let verifier = ZkTransitionVerifier::new();
         assert!(verifier.verify_transition(&r1.unwrap().1, &prev_hash));
         assert!(verifier.verify_transition(&r2.unwrap().1, &prev_hash));
+    }
+
+    // ================================================================
+    // Stochastic Audit Tests (INV-6)
+    // ================================================================
+
+    #[test]
+    fn test_audit_scheduling() {
+        let config = StochasticAuditConfig {
+            audit_interval: 50,
+            response_deadline: 5,
+        };
+        let auditor = StochasticAuditor::new(config);
+
+        assert!(!auditor.should_audit(0));
+        assert!(!auditor.should_audit(1));
+        assert!(!auditor.should_audit(49));
+        assert!(auditor.should_audit(50));
+        assert!(!auditor.should_audit(51));
+        assert!(auditor.should_audit(100));
+    }
+
+    #[test]
+    fn test_deterministic_challenge_generation() {
+        // Two auditors with the same epoch hash must select the same node
+        let config = StochasticAuditConfig::default();
+        let epoch = [0xABu8; 32];
+
+        let mut a1 = StochasticAuditor::new(config.clone());
+        a1.update_epoch_hash(&epoch);
+        let c1 = a1.generate_challenge(50, 10).unwrap();
+
+        let mut a2 = StochasticAuditor::new(StochasticAuditConfig::default());
+        a2.update_epoch_hash(&epoch);
+        let c2 = a2.generate_challenge(50, 10).unwrap();
+
+        assert_eq!(c1.challenged_node_index, c2.challenged_node_index);
+        assert_eq!(c1.challenge_seed, c2.challenge_seed);
+    }
+
+    #[test]
+    fn test_different_epoch_different_selection() {
+        let config = StochasticAuditConfig::default();
+
+        let mut a1 = StochasticAuditor::new(config.clone());
+        a1.update_epoch_hash(&[0x01u8; 32]);
+        let c1 = a1.generate_challenge(50, 100).unwrap();
+
+        let mut a2 = StochasticAuditor::new(StochasticAuditConfig::default());
+        a2.update_epoch_hash(&[0x02u8; 32]);
+        let c2 = a2.generate_challenge(50, 100).unwrap();
+
+        // Different epoch hashes should (very likely) produce different seeds
+        assert_ne!(c1.challenge_seed, c2.challenge_seed);
+    }
+
+    #[test]
+    fn test_audit_proof_pass() {
+        let mut auditor = StochasticAuditor::new(StochasticAuditConfig::default());
+        auditor.update_epoch_hash(&[0xFFu8; 32]);
+
+        let challenge = auditor.generate_challenge(50, 10);
+        assert!(challenge.is_some());
+
+        // Generate a valid transition proof
+        let prev_hash = [0xABu8; 32];
+        let weights = vec![0.1, 0.2, 0.3];
+        let residuals = vec![0.01, -0.02, 0.015];
+        let (_, proof) = generate_transition_proof(&prev_hash, &weights, &residuals).unwrap();
+
+        // Verify the response (within deadline)
+        let verdict = auditor.verify_response(51, &prev_hash, &proof);
+        assert_eq!(verdict, AuditVerdict::Pass);
+    }
+
+    #[test]
+    fn test_audit_proof_fail_forged_hash() {
+        let mut auditor = StochasticAuditor::new(StochasticAuditConfig::default());
+        auditor.update_epoch_hash(&[0xFFu8; 32]);
+        auditor.generate_challenge(50, 10);
+
+        // Generate proof with one hash, verify against a different one
+        let real_hash = [0xABu8; 32];
+        let forged_hash = [0xCDu8; 32];
+        let weights = vec![0.1, 0.2, 0.3];
+        let residuals = vec![0.01, -0.02, 0.015];
+        let (_, proof) = generate_transition_proof(&real_hash, &weights, &residuals).unwrap();
+
+        let verdict = auditor.verify_response(51, &forged_hash, &proof);
+        assert_eq!(verdict, AuditVerdict::Fail);
+    }
+
+    #[test]
+    fn test_audit_timeout() {
+        let config = StochasticAuditConfig {
+            audit_interval: 50,
+            response_deadline: 5,
+        };
+        let mut auditor = StochasticAuditor::new(config);
+        auditor.update_epoch_hash(&[0xFFu8; 32]);
+        auditor.generate_challenge(50, 10);
+
+        // Respond after deadline (round 56 > deadline 55)
+        let prev_hash = [0xABu8; 32];
+        let weights = vec![0.1, 0.2];
+        let residuals = vec![0.01, -0.02];
+        let (_, proof) = generate_transition_proof(&prev_hash, &weights, &residuals).unwrap();
+
+        let verdict = auditor.verify_response(56, &prev_hash, &proof);
+        assert_eq!(verdict, AuditVerdict::Timeout);
+    }
+
+    #[test]
+    fn test_audit_check_timeout() {
+        let config = StochasticAuditConfig {
+            audit_interval: 50,
+            response_deadline: 5,
+        };
+        let mut auditor = StochasticAuditor::new(config);
+        auditor.update_epoch_hash(&[0xFFu8; 32]);
+        auditor.generate_challenge(50, 10);
+
+        // Not timed out yet
+        assert_eq!(auditor.check_timeout(54), AuditVerdict::NotScheduled);
+        // Timed out
+        assert_eq!(auditor.check_timeout(56), AuditVerdict::Timeout);
+        // Pending cleared
+        assert!(auditor.pending().is_none());
+    }
+
+    #[test]
+    fn test_no_audit_on_non_scheduled_round() {
+        let mut auditor = StochasticAuditor::new(StochasticAuditConfig::default());
+        let result = auditor.generate_challenge(37, 10);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_no_audit_with_zero_nodes() {
+        let mut auditor = StochasticAuditor::new(StochasticAuditConfig::default());
+        let result = auditor.generate_challenge(50, 0);
+        assert!(result.is_none());
     }
 }

@@ -130,9 +130,22 @@ impl Aggregator for TrimmedMeanByzAggregator {
     }
 }
 
-/// Weighted Trimmed Mean aggregator (Sybil-Resistant)
-/// Each node's contribution is weighted by `1.0 * reputation_score`.
-/// Nodes with low reputation have negligible influence on consensus.
+/// Weighted Trimmed Mean aggregator (Sybil-Resistant, Active Defense)
+///
+/// Each node's contribution is weighted continuously by its reputation score.
+/// This provides two key properties:
+/// - **Bounded influence**: As `R_i -> 0`, `influence_i -> 0` (no cliff at ban threshold)
+/// - **Sybil resistance**: Adding Sybils dilutes per-node power (weights normalized)
+///
+/// **Order of operations** (frozen for determinism):
+/// 1. Sort updates by value per coordinate
+/// 2. Trim top `f` and bottom `f` outliers
+/// 3. Weight remaining updates by reputation
+/// 4. Compute weighted average: `sum(val_i * R_i) / sum(R_i)`
+///
+/// This is Option A from the security specification: trim first, then weight.
+/// Rationale: trimming removes extreme values regardless of reputation,
+/// preventing high-reputation compromised nodes from injecting outliers.
 #[derive(Clone, Debug)]
 pub struct WeightedTrimmedMeanAggregator {
     /// Number of top/bottom values to trim per dimension
@@ -146,6 +159,26 @@ impl WeightedTrimmedMeanAggregator {
         Self {
             f,
             reputation_weights,
+        }
+    }
+
+    /// Compute the maximum influence a single node can have on the consensus.
+    /// Returns `R_i / sum(R_j for j in active set)` for the given node index.
+    /// This is an upper bound -- actual influence may be lower due to trimming.
+    pub fn max_influence(&self, node_index: usize) -> f32 {
+        let n = self.reputation_weights.len();
+        if n == 0 {
+            return 0.0;
+        }
+        if self.f * 2 >= n {
+            return 1.0 / n as f32;
+        }
+        let r_i = self.reputation_weights.get(node_index).copied().unwrap_or(0.0);
+        let total: f32 = self.reputation_weights.iter().sum();
+        if total <= 0.0 {
+            0.0
+        } else {
+            r_i / total
         }
     }
 }
@@ -678,5 +711,189 @@ mod tests {
 
         // Median of [0, 0.9, 1.0, 1.1, 100] = 1.0
         assert_eq!(result.weights[0], 1.0);
+    }
+
+    // ================================================================
+    // Active Defense Tests (INV-1, INV-2, INV-3 from INVARIANTS.md)
+    // ================================================================
+
+    #[test]
+    fn test_determinism_weighted_trimmed_mean() {
+        // INV-6: Same inputs in same order must produce identical outputs
+        let updates = vec![
+            vec![1.0, 2.0],
+            vec![1.5, 2.5],
+            vec![0.5, 1.5],
+            vec![100.0, 100.0], // outlier
+            vec![1.2, 2.2],
+        ];
+        let weights = vec![0.9, 0.8, 0.7, 0.1, 0.85];
+
+        let r1 = weighted_trimmed_mean(&updates, 1, &weights);
+        let r2 = weighted_trimmed_mean(&updates, 1, &weights);
+
+        assert_eq!(r1.weights, r2.weights, "Determinism: same input -> same output");
+    }
+
+    #[test]
+    fn test_monotonicity_higher_rep_more_influence() {
+        // Higher reputation should increase a node's contribution.
+        // Bookend outliers absorb trimming; the test node sits in the interior.
+        let updates = vec![
+            vec![-10.0], // Node 0: bookend low (will be trimmed)
+            vec![0.3],   // Node 1: biased low — THE node we test
+            vec![0.5],   // Node 2: honest
+            vec![0.5],   // Node 3: honest
+            vec![0.5],   // Node 4: honest
+            vec![0.5],   // Node 5: honest
+            vec![10.0],  // Node 6: bookend high (will be trimmed)
+        ];
+
+        // Case A: Node 1 (value=0.3) has high reputation → pulls result toward 0.3
+        let weights_high = vec![0.5, 1.0, 0.5, 0.5, 0.5, 0.5, 0.5];
+        let result_high = weighted_trimmed_mean(&updates, 1, &weights_high);
+
+        // Case B: Node 1 (value=0.3) has low reputation → less pull toward 0.3
+        let weights_low = vec![0.5, 0.1, 0.5, 0.5, 0.5, 0.5, 0.5];
+        let result_low = weighted_trimmed_mean(&updates, 1, &weights_low);
+
+        // With high rep, node 1's "0.3" pulls the weighted average lower
+        assert!(
+            result_high.weights[0] < result_low.weights[0],
+            "Higher reputation should give more influence: high_rep={} < low_rep={}",
+            result_high.weights[0],
+            result_low.weights[0]
+        );
+    }
+
+    #[test]
+    fn test_bounded_influence_near_zero_rep() {
+        // INV-1: Node with near-zero reputation cannot produce large drift.
+        // Bookend outliers absorb trimming; the adversarial node sits in the interior.
+        //
+        // Layout (sorted): [-100, 1.0 x6, 2.0, 100] — trim 1 from each end.
+        // Interior: [1.0 x6, 2.0] — the adversarial node (2.0) survives trimming.
+        let updates = vec![
+            vec![-100.0], // bookend low (trimmed)
+            vec![1.0],
+            vec![1.0],
+            vec![1.0],
+            vec![2.0],    // Node 4: adversarial but within interior
+            vec![1.0],
+            vec![1.0],
+            vec![1.0],
+            vec![100.0],  // bookend high (trimmed)
+        ];
+
+        // Case A: Node 4 (adversarial) has near-zero reputation
+        let mut weights_low = vec![0.8; 9];
+        weights_low[4] = 0.001;
+        let result_low = weighted_trimmed_mean(&updates, 1, &weights_low);
+
+        // Case B: Node 4 has equal reputation
+        let weights_equal = vec![0.8; 9];
+        let result_equal = weighted_trimmed_mean(&updates, 1, &weights_equal);
+
+        let drift_low = (result_low.weights[0] - 1.0).abs();
+        let drift_equal = (result_equal.weights[0] - 1.0).abs();
+        assert!(
+            drift_low < drift_equal,
+            "Near-zero rep should reduce drift: low={}, equal={}",
+            drift_low,
+            drift_equal
+        );
+    }
+
+    #[test]
+    fn test_collusion_bounded() {
+        // INV-3: Many low-rep colluding nodes cannot overpower fewer high-rep honest nodes
+        let mut updates: Vec<Vec<f32>> = Vec::new();
+        let mut weights: Vec<f32> = Vec::new();
+
+        // 3 honest nodes (high rep, submit 1.0)
+        for _ in 0..3 {
+            updates.push(vec![1.0]);
+            weights.push(0.95);
+        }
+
+        // 7 colluding Byzantine nodes (low rep, all submit 5.0)
+        for _ in 0..7 {
+            updates.push(vec![5.0]);
+            weights.push(0.15);
+        }
+
+        let result = weighted_trimmed_mean(&updates, 2, &weights);
+
+        // Despite 7 vs 3, the honest high-rep nodes should dominate
+        // Result should be much closer to 1.0 than to 5.0
+        assert!(
+            result.weights[0] < 3.0,
+            "Colluders with low rep should not overpower honest: got {}",
+            result.weights[0]
+        );
+    }
+
+    #[test]
+    fn test_max_influence_bound() {
+        let weights = vec![0.9, 0.8, 0.1, 0.05, 0.7];
+        let agg = WeightedTrimmedMeanAggregator::new(1, weights.clone());
+
+        // Node 2 (rep=0.1): influence should be R_i / sum(R) = 0.1 / 2.55 ≈ 0.039
+        let influence = agg.max_influence(2);
+        let expected = 0.1 / (0.9 + 0.8 + 0.1 + 0.05 + 0.7);
+        assert!(
+            (influence - expected).abs() < 0.001,
+            "Influence bound: got {}, expected {}",
+            influence,
+            expected
+        );
+
+        // Node with rep=0.05 should have lower influence than node with rep=0.9
+        assert!(agg.max_influence(3) < agg.max_influence(0));
+    }
+
+    #[test]
+    fn test_sybil_dilution() {
+        // INV-2: Adding Sybils at default reputation (0.5) should not overpower
+        // high-reputation honest nodes. The Byzantine influence is bounded by
+        // their reputation weight relative to the honest total.
+        let honest_update = vec![1.0];
+        let attack_update = vec![1.5]; // Biased within the non-trimmed interior
+
+        // Scenario: 8 honest (high rep) + 4 Byzantine (default rep=0.5), f=1
+        // Bookend outliers absorb trimming so all Byzantine updates survive.
+        let mut updates: Vec<Vec<f32>> = Vec::new();
+        updates.push(vec![-100.0]); // bookend low (trimmed)
+        for _ in 0..8 {
+            updates.push(honest_update.clone());
+        }
+        for _ in 0..4 {
+            updates.push(attack_update.clone());
+        }
+        updates.push(vec![100.0]); // bookend high (trimmed)
+
+        let mut weights = vec![0.5]; // bookend
+        weights.extend(vec![0.9; 8]); // honest: high rep
+        weights.extend(vec![0.5; 4]); // byzantine: default rep
+        weights.push(0.5); // bookend
+
+        let result = weighted_trimmed_mean(&updates, 1, &weights);
+
+        // Despite 4 Byzantine vs 8 honest, the honest nodes' higher reputation
+        // means the result stays closer to 1.0 than to 1.5.
+        // Honest total weight: 8 * 0.9 = 7.2, Byzantine: 4 * 0.5 = 2.0
+        // Expected ≈ (7.2 * 1.0 + 2.0 * 1.5) / 9.2 ≈ 1.109
+        let drift = (result.weights[0] - 1.0).abs();
+        assert!(
+            drift < 0.25,
+            "4 Sybils at default rep should not cause >0.25 drift from honest mean: got drift={}",
+            drift
+        );
+        // Result should be closer to 1.0 (honest) than to 1.5 (attack)
+        assert!(
+            result.weights[0] < 1.25,
+            "Result should be closer to honest value: got {}",
+            result.weights[0]
+        );
     }
 }
