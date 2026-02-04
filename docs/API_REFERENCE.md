@@ -1,4 +1,4 @@
-# QRES v19 API Reference
+# QRES v20.0.1 API Reference
 
 ## Core Traits (`qres_core`)
 The primary interface is defined in the `cortex` module.
