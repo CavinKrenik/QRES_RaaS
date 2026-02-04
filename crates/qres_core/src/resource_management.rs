@@ -207,44 +207,6 @@ pub fn calculate_broadcast_utility(
     utility > threshold
 }
 
-#[cfg(test)]
-mod energy_pool_tests {
-    use super::*;
-
-    #[test]
-    fn test_energy_pool_basics() {
-        let mut pool = EnergyPool::new(100);
-        assert_eq!(pool.current(), 100);
-        assert_eq!(pool.ratio(), 1.0);
-
-        assert!(pool.spend(30));
-        assert_eq!(pool.current(), 70);
-        assert!((pool.ratio() - 0.7).abs() < 0.01);
-
-        pool.recharge(50);
-        assert_eq!(pool.current(), 100); // Capped at max
-    }
-
-    #[test]
-    fn test_energy_critical_threshold() {
-        let mut pool = EnergyPool::new(100);
-        pool.set_energy(9);
-        assert!(pool.is_critical());
-
-        pool.set_energy(10);
-        assert!(!pool.is_critical());
-    }
-
-    #[test]
-    fn test_insufficient_energy() {
-        let mut pool = EnergyPool::new(100);
-        pool.set_energy(10);
-
-        assert!(!pool.spend(50)); // Can't afford
-        assert_eq!(pool.current(), 10); // Unchanged
-    }
-}
-
 pub struct ResourceUsagePredictor {
     inner: HybridPredictor,
 }
@@ -310,5 +272,43 @@ impl WorkerPool {
 
         self.current_capacity = clamped;
         clamped
+    }
+}
+
+#[cfg(test)]
+mod energy_pool_tests {
+    use super::*;
+
+    #[test]
+    fn test_energy_pool_basics() {
+        let mut pool = EnergyPool::new(100);
+        assert_eq!(pool.current(), 100);
+        assert_eq!(pool.ratio(), 1.0);
+
+        assert!(pool.spend(30));
+        assert_eq!(pool.current(), 70);
+        assert!((pool.ratio() - 0.7).abs() < 0.01);
+
+        pool.recharge(50);
+        assert_eq!(pool.current(), 100); // Capped at max
+    }
+
+    #[test]
+    fn test_energy_critical_threshold() {
+        let mut pool = EnergyPool::new(100);
+        pool.set_energy(9);
+        assert!(pool.is_critical());
+
+        pool.set_energy(10);
+        assert!(!pool.is_critical());
+    }
+
+    #[test]
+    fn test_insufficient_energy() {
+        let mut pool = EnergyPool::new(100);
+        pool.set_energy(10);
+
+        assert!(!pool.spend(50)); // Can't afford
+        assert_eq!(pool.current(), 10); // Unchanged
     }
 }

@@ -36,7 +36,7 @@ pub struct GhostUpdate {
 impl GhostUpdate {
     /// Cure Threshold Detection
     ///
-    /// Returns 	rue when this update represents a "cure-worthy" improvement:
+    /// Returns true when this update represents a "cure-worthy" improvement:
     /// - Residual error < 0.02 (2% threshold, tunable via META_TUNING)
     /// - Accuracy delta > 0.05 (5% improvement minimum)
     ///
@@ -48,13 +48,13 @@ impl GhostUpdate {
     /// - INV-5: Must be checked AFTER energy guard (never bypasses 15% reserve)
     /// - INV-6: Uses f32 but only for threshold comparison (thresholds are constants)
     pub fn cure_threshold(&self) -> bool {
-        const RESIDUAL_THRESHOLD: f32 = 0.02;  // 2% error threshold
-        const ACCURACY_MIN_DELTA: f32 = 0.05;  // 5% improvement minimum
-        
+        const RESIDUAL_THRESHOLD: f32 = 0.02; // 2% error threshold
+        const ACCURACY_MIN_DELTA: f32 = 0.05; // 5% improvement minimum
+
         // Both conditions must be met for epidemic "cure" propagation
         self.residual_error < RESIDUAL_THRESHOLD && self.accuracy_delta > ACCURACY_MIN_DELTA
     }
-    
+
     /// Check if this update is ready for epidemic gossip ("infection")
     ///
     /// This is the viral protocol entry point. It checks:
@@ -83,21 +83,21 @@ impl GhostUpdate {
     /// **Invariant Safety:**
     /// - INV-5: Energy guard prevents brownouts (hard 15% floor)
     pub fn can_infect(&self, energy_pool: f32) -> bool {
-        const ENERGY_RESERVE_THRESHOLD: f32 = 0.15;  // 15% minimum (INV-5)
-        
+        const ENERGY_RESERVE_THRESHOLD: f32 = 0.15; // 15% minimum (INV-5)
+
         // Cure quality check
         if !self.cure_threshold() {
             return false;
         }
-        
+
         // Energy guard (INV-5): Never gossip if battery < 15%
         if energy_pool < ENERGY_RESERVE_THRESHOLD {
             return false;
         }
-        
+
         true
     }
-    
+
     /// Get epidemic priority level
     ///
     /// Returns a priority score (0.0 to 1.0) for gossip scheduling.
@@ -114,12 +114,12 @@ impl GhostUpdate {
         if !self.can_infect(energy_pool) {
             return 0.0; // Not eligible for epidemic gossip
         }
-        
+
         // Priority = accuracy_delta * (1 - residual_error) * energy_factor
         // This ensures high-quality updates with good energy reserves get priority
         let error_quality = (1.0 - self.residual_error.min(1.0)).max(0.0);
         let energy_factor = (energy_pool - 0.15).max(0.0) / 0.85; // Scale above reserve
-        
+
         (self.accuracy_delta * error_quality * energy_factor).min(1.0)
     }
 }

@@ -67,7 +67,7 @@ pub mod gpu;
 pub mod inference;
 pub mod meta_brain;
 pub mod mixer;
-pub mod multimodal;  // Phase 2 (v20): Multimodal SNN & Cross-Correlation
+pub mod multimodal; // Phase 2 (v20): Multimodal SNN & Cross-Correlation
 #[cfg(feature = "std")]
 pub mod multivariate;
 pub mod packet;
@@ -80,7 +80,7 @@ pub mod reputation;
 #[cfg(feature = "std")]
 pub mod resource_management;
 pub mod secure_agg;
-pub mod semantic;   // Phase 4 (v20): HSTP-aligned semantic gene envelopes
+pub mod semantic; // Phase 4 (v20): HSTP-aligned semantic gene envelopes
 pub mod spectral;
 pub mod tensor;
 pub mod transformer;

@@ -252,11 +252,7 @@ impl SemanticEnvelope {
 
         // Build provenance triples
         let mut provenance = Vec::with_capacity(4);
-        provenance.push(RdfTriple::new(
-            &creator.id,
-            "qres:exported",
-            &gene_uri,
-        ));
+        provenance.push(RdfTriple::new(&creator.id, "qres:exported", &gene_uri));
         provenance.push(RdfTriple::new(
             &gene_uri,
             "qres:fitness",
@@ -461,7 +457,7 @@ fn bytes_to_hex(bytes: &[u8]) -> String {
 }
 
 fn hex_to_bytes(hex: &str) -> Option<Vec<u8>> {
-    if hex.len() % 2 != 0 {
+    if !hex.len().is_multiple_of(2) {
         return None;
     }
     let mut bytes = Vec::with_capacity(hex.len() / 2);
@@ -628,7 +624,9 @@ mod tests {
         let envelope = SemanticEnvelope::wrap(&peer_id, &gene, meta);
 
         // Verify provenance triples
-        let predicates: Vec<&str> = envelope.provenance.iter()
+        let predicates: Vec<&str> = envelope
+            .provenance
+            .iter()
             .map(|t| t.predicate.as_str())
             .collect();
         assert!(predicates.contains(&"qres:exported"));
@@ -637,7 +635,9 @@ mod tests {
         assert!(predicates.contains(&"qres:modality"));
 
         // Verify fitness value
-        let fitness_triple = envelope.provenance.iter()
+        let fitness_triple = envelope
+            .provenance
+            .iter()
             .find(|t| t.predicate == "qres:fitness")
             .unwrap();
         assert_eq!(fitness_triple.object, "0.0351");
@@ -667,14 +667,10 @@ mod tests {
         let meta = sample_metadata();
         let envelope = SemanticEnvelope::wrap(&update.peer_id, &gene, meta);
 
-        let semantic = SemanticGhostUpdate::new(update)
-            .with_envelope(envelope);
+        let semantic = SemanticGhostUpdate::new(update).with_envelope(envelope);
 
         assert!(semantic.has_semantics());
-        assert_eq!(
-            semantic.envelope.as_ref().unwrap().gene_payload_len,
-            48
-        );
+        assert_eq!(semantic.envelope.as_ref().unwrap().gene_payload_len, 48);
     }
 
     #[test]
@@ -692,8 +688,7 @@ mod tests {
         let meta = sample_metadata();
         let envelope = SemanticEnvelope::wrap(&update.peer_id, &gene, meta);
 
-        let mut semantic = SemanticGhostUpdate::new(update)
-            .with_envelope(envelope);
+        let mut semantic = SemanticGhostUpdate::new(update).with_envelope(envelope);
 
         assert!(semantic.has_semantics());
         semantic.strip_semantics();

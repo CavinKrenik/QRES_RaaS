@@ -313,6 +313,7 @@ fn verification_sybil_attack_weighted_trimmed_mean() {
         tracker.get_score(&sybil_peers[0])
     );
 
+    #[allow(unused_assignments)]
     let mut last_drift_pct = f32::MAX;
 
     for round in 0..n_rounds {
@@ -482,7 +483,7 @@ fn verification_bfp16_vanishing_gradient_autotuner() {
     );
 
     // Test 2: Simulate learning loop
-    let mut weights = vec![0.001f32; 8];
+    let mut weights = [0.001f32; 8];
     let lr = 1e-5f32;
     let mut zero_velocity_count = 0;
 

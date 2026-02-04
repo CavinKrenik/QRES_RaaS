@@ -32,6 +32,8 @@ fn dummy_update(peer_id: u8) -> GhostUpdate {
             response: Scalar::ZERO,
         },
         dp_epsilon: 1.0,
+        residual_error: 0.0,
+        accuracy_delta: 0.0,
     }
 }
 
@@ -64,6 +66,7 @@ fn test_24h_swarm_simulation() {
 
     // Simulation: step in 1-second increments for finer granularity
     let step_ms = 1_000u64; // 1 second
+    #[allow(unused_assignments)]
     let mut current_ms = 0u64;
     let mut total_messages_sent = 0u64;
     let mut total_messages_batched = 0u64;
@@ -102,7 +105,7 @@ fn test_24h_swarm_simulation() {
             }
 
             // Simulate gossip generation: every 10 minutes, each node wants to send
-            if current_ms % (10 * 60_000) == 0 {
+            if current_ms.is_multiple_of(10 * 60_000) {
                 let update = dummy_update((current_ms % 256) as u8);
                 if node.should_transmit(current_ms) {
                     total_messages_sent += 1;
@@ -359,8 +362,8 @@ fn test_reputation_weighted_sleep_staggering() {
     }
 
     let mut current_ms = 1000u64;
-    let mut messages_batched_per_node = vec![0u64; 10];
-    let mut messages_burst_per_node = vec![0u64; 10];
+    let mut messages_batched_per_node = [0u64; 10];
+    let mut messages_burst_per_node = [0u64; 10];
 
     while current_ms < SIM_DURATION_MS {
         for (i, node) in nodes.iter_mut().enumerate() {
@@ -372,7 +375,7 @@ fn test_reputation_weighted_sleep_staggering() {
             }
 
             // Every 30 seconds, generate a gossip message
-            if current_ms % 30_000 == 0 {
+            if current_ms.is_multiple_of(30_000) {
                 let update = dummy_update(i as u8);
                 if node.should_transmit(current_ms) {
                     // Would send directly (radio awake)

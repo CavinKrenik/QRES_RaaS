@@ -73,9 +73,10 @@ impl RegimeConsensusGate {
     /// Votes are bound to a specific round to prevent replay.
     pub fn submit_vote(&mut self, vote: RegimeVote) {
         // Prevent duplicate votes from the same node in the same round
-        let already_voted = self.votes.iter().any(|v| {
-            v.node_id == vote.node_id && v.round == vote.round
-        });
+        let already_voted = self
+            .votes
+            .iter()
+            .any(|v| v.node_id == vote.node_id && v.round == vote.round);
         if !already_voted {
             self.votes.push(vote);
         }
@@ -83,35 +84,49 @@ impl RegimeConsensusGate {
 
     /// Evaluate whether Storm transition is authorized.
     /// Returns true only if enough high-reputation nodes confirm the entropy spike.
-    pub fn is_storm_authorized(&self, current_round: u64, entropy_derivative_threshold: f32) -> bool {
-        let trusted_confirmations = self.votes.iter().filter(|v| {
-            // Vote must be recent (within window)
-            let age = current_round.saturating_sub(v.round);
-            age <= self.config.vote_window_rounds
+    pub fn is_storm_authorized(
+        &self,
+        current_round: u64,
+        entropy_derivative_threshold: f32,
+    ) -> bool {
+        let trusted_confirmations = self
+            .votes
+            .iter()
+            .filter(|v| {
+                // Vote must be recent (within window)
+                let age = current_round.saturating_sub(v.round);
+                age <= self.config.vote_window_rounds
             // Reporter must be high-reputation
             && v.reputation >= self.config.min_vote_reputation
             // Reporter must have observed a genuine spike
             && v.entropy_derivative > entropy_derivative_threshold
-        }).count();
+            })
+            .count();
 
         trusted_confirmations >= self.config.min_trusted_confirmations
     }
 
     /// Prune expired votes to prevent unbounded memory growth.
     pub fn prune_expired(&mut self, current_round: u64) {
-        self.votes.retain(|v| {
-            current_round.saturating_sub(v.round) <= self.config.vote_window_rounds
-        });
+        self.votes
+            .retain(|v| current_round.saturating_sub(v.round) <= self.config.vote_window_rounds);
     }
 
     /// Number of currently valid trusted votes.
-    pub fn trusted_vote_count(&self, current_round: u64, entropy_derivative_threshold: f32) -> usize {
-        self.votes.iter().filter(|v| {
-            let age = current_round.saturating_sub(v.round);
-            age <= self.config.vote_window_rounds
-                && v.reputation >= self.config.min_vote_reputation
-                && v.entropy_derivative > entropy_derivative_threshold
-        }).count()
+    pub fn trusted_vote_count(
+        &self,
+        current_round: u64,
+        entropy_derivative_threshold: f32,
+    ) -> usize {
+        self.votes
+            .iter()
+            .filter(|v| {
+                let age = current_round.saturating_sub(v.round);
+                age <= self.config.vote_window_rounds
+                    && v.reputation >= self.config.min_vote_reputation
+                    && v.entropy_derivative > entropy_derivative_threshold
+            })
+            .count()
     }
 }
 
@@ -366,11 +381,11 @@ impl RegimeDetector {
         self.update(entropy, packet_size, now_ms);
 
         // If update() set Storm, check consensus gate
-        if self.current_regime == Regime::Storm {
-            if !consensus_gate.is_storm_authorized(current_round, self.entropy_derivative_threshold) {
-                // Storm not authorized by trusted quorum -- downgrade to PreStorm
-                self.current_regime = Regime::PreStorm;
-            }
+        if self.current_regime == Regime::Storm
+            && !consensus_gate.is_storm_authorized(current_round, self.entropy_derivative_threshold)
+        {
+            // Storm not authorized by trusted quorum -- downgrade to PreStorm
+            self.current_regime = Regime::PreStorm;
         }
     }
 

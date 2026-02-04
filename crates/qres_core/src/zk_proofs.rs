@@ -385,14 +385,18 @@ impl StochasticAuditor {
 
     /// Check whether an audit should occur this round.
     pub fn should_audit(&self, round: u64) -> bool {
-        round > 0 && round % self.config.audit_interval == 0
+        round > 0 && round.is_multiple_of(self.config.audit_interval)
     }
 
     /// Deterministically generate a challenge for the given round.
     ///
     /// Selection is: BLAKE3(round_le_bytes || swarm_epoch_hash) → index mod n_active.
     /// Returns `None` if no audit is scheduled or `n_active == 0`.
-    pub fn generate_challenge(&mut self, round: u64, n_active_nodes: usize) -> Option<AuditChallenge> {
+    pub fn generate_challenge(
+        &mut self,
+        round: u64,
+        n_active_nodes: usize,
+    ) -> Option<AuditChallenge> {
         if !self.should_audit(round) || n_active_nodes == 0 {
             return None;
         }
@@ -858,7 +862,7 @@ pub trait EnclaveGate {
     /// # Returns
     /// `Ok(())` if energy is sufficient, `Err(EnclaveError::InsufficientEnergy)` otherwise.
     fn report_reputation(&self, reputation: f32, energy_pool: f32) -> Result<(), EnclaveError>;
-    
+
     /// Generate ZK proof with energy accounting
     ///
     /// **Software Implementation:** Standard ZK proof generation + energy check.
@@ -877,7 +881,7 @@ pub trait EnclaveGate {
         threshold: f32,
         energy_pool: f32,
     ) -> Result<NormProof, EnclaveError>;
-    
+
     /// Verify a ZK proof (energy-free for verifiers)
     ///
     /// **Software Implementation:** Standard ZK verification.
@@ -916,7 +920,7 @@ pub struct SoftwareEnclaveGate {
 impl Default for SoftwareEnclaveGate {
     fn default() -> Self {
         Self {
-            energy_threshold: 0.10,  // 10% minimum (INV-5)
+            energy_threshold: 0.10, // 10% minimum (INV-5)
         }
     }
 }
@@ -934,12 +938,12 @@ impl EnclaveGate for SoftwareEnclaveGate {
         if energy_pool < self.energy_threshold {
             return Err(EnclaveError::InsufficientEnergy);
         }
-        
+
         // In real TEE: would write to attested storage
         // For now: just return success
         Ok(())
     }
-    
+
     fn generate_attested_proof(
         &self,
         weights: &[f32],
@@ -950,23 +954,23 @@ impl EnclaveGate for SoftwareEnclaveGate {
         if energy_pool < self.energy_threshold {
             return Err(EnclaveError::InsufficientEnergy);
         }
-        
+
         // Input validation
         if weights.is_empty() || threshold <= 0.0 {
             return Err(EnclaveError::InvalidInput);
         }
-        
+
         // Generate standard ZK proof (software path)
         // In real TEE: this would happen inside enclave with attestation
         let commitment = ED25519_BASEPOINT_POINT.compress();
-        let response = Scalar::ONE;  // Placeholder response
-        
+        let response = Scalar::ONE; // Placeholder response
+
         Ok(NormProof {
             commitment,
             response,
         })
     }
-    
+
     fn verify_attested_proof(&self, _proof: &NormProof, _threshold: f32) -> bool {
         // Software verification (no energy cost for verifiers)
         // In real TEE: would verify attestation signature
@@ -978,62 +982,61 @@ impl EnclaveGate for SoftwareEnclaveGate {
 #[cfg(test)]
 mod enclave_tests {
     use super::*;
-    
+
     #[test]
     fn test_software_gate_energy_threshold() {
         let gate = SoftwareEnclaveGate::default();
-        
+
         // Below threshold (10%)
         let result = gate.report_reputation(0.8, 0.05);
         assert_eq!(result, Err(EnclaveError::InsufficientEnergy));
-        
+
         // At threshold
         let result = gate.report_reputation(0.8, 0.10);
         assert_eq!(result, Ok(()));
-        
+
         // Above threshold
         let result = gate.report_reputation(0.8, 0.50);
         assert_eq!(result, Ok(()));
     }
-    
+
     #[test]
     fn test_proof_generation_energy_guard() {
         let gate = SoftwareEnclaveGate::default();
         let weights = vec![1.0, 2.0, 3.0];
-        
+
         // Insufficient energy
         let result = gate.generate_attested_proof(&weights, 5.0, 0.05);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), EnclaveError::InsufficientEnergy);
-        
+
         // Sufficient energy
         let result = gate.generate_attested_proof(&weights, 5.0, 0.50);
         assert!(result.is_ok());
     }
-    
+
     #[test]
     fn test_proof_verification_no_energy_cost() {
         let gate = SoftwareEnclaveGate::default();
-        
+
         // Generate a proof
         let weights = vec![1.0, 2.0];
         let proof = gate.generate_attested_proof(&weights, 3.0, 0.50).unwrap();
-        
+
         // Verification should always succeed (software mock)
         assert!(gate.verify_attested_proof(&proof, 3.0));
     }
-    
+
     #[test]
     fn test_invalid_proof_generation() {
         let gate = SoftwareEnclaveGate::default();
-        
+
         // Empty weights
         let result = gate.generate_attested_proof(&[], 5.0, 0.50);
         assert_eq!(result.unwrap_err(), EnclaveError::InvalidInput);
-        
+
         // Zero threshold
         let result = gate.generate_attested_proof(&[1.0], 0.0, 0.50);
         assert_eq!(result.unwrap_err(), EnclaveError::InvalidInput);
     }
 }
-

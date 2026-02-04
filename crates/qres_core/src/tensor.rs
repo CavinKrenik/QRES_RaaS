@@ -206,151 +206,6 @@ impl VarianceMonitor {
     }
 }
 
-#[cfg(test)]
-mod variance_monitor_tests {
-    use super::*;
-    use crate::consensus::krum::Bfp16Vec;
-
-    #[test]
-    fn test_no_correction_for_normal_gradients() {
-        let mut monitor = VarianceMonitor::default();
-        let gradients = vec![0.01, -0.02, 0.015, -0.005];
-
-        let result = monitor.observe_gradients(&gradients);
-        assert!(
-            result.is_none(),
-            "Normal gradients should not trigger correction"
-        );
-    }
-
-    #[test]
-    fn test_correction_triggers_for_vanishing_gradients() {
-        let mut monitor = VarianceMonitor::new(1e-7, 2);
-
-        // Feed vanishing gradients
-        let tiny_grads = vec![1e-9, -1e-9, 5e-10, -5e-10];
-
-        // First observation: increments counter but doesn't trigger yet
-        assert!(monitor.observe_gradients(&tiny_grads).is_none());
-
-        // Second observation: triggers correction
-        let shift = monitor.observe_gradients(&tiny_grads);
-        assert!(
-            shift.is_some(),
-            "Should trigger after 2 consecutive observations"
-        );
-
-        let shift_val = shift.unwrap();
-        assert!(shift_val > 0, "Shift should be positive");
-        println!("Correction shift: {} bits", shift_val);
-    }
-
-    #[test]
-    fn test_bfp16_auto_tuning_preserves_signal() {
-        let mut monitor = VarianceMonitor::new(1e-7, 1);
-
-        // Create a BFP16 vector with very small values
-        let small_data = vec![1e-8f32; 8];
-        let mut bfp = Bfp16Vec::from_f32_slice(&small_data);
-
-        println!(
-            "Before: exponent={}, mantissas={:?}",
-            bfp.exponent, bfp.mantissas
-        );
-        let before_values = bfp.to_vec_f32();
-        println!("Before values: {:?}", before_values);
-
-        // Check if correction is needed
-        if let Some(shift) = monitor.observe_gradients(&small_data) {
-            println!("Applying correction: shift={} bits", shift);
-            VarianceMonitor::apply_correction(&mut bfp, shift);
-        }
-
-        println!(
-            "After: exponent={}, mantissas={:?}",
-            bfp.exponent, bfp.mantissas
-        );
-        let after_values = bfp.to_vec_f32();
-        println!("After values: {:?}", after_values);
-
-        // The key test: values should still be non-zero
-        for (i, &v) in after_values.iter().enumerate() {
-            assert!(
-                v.abs() > 0.0,
-                "Value at index {} is zero after correction!",
-                i
-            );
-        }
-    }
-
-    #[test]
-    fn test_vanishing_gradient_learning_velocity() {
-        // Simulate a training loop with vanishing gradients
-        // and verify the auto-tuner maintains non-zero learning velocity
-        let mut monitor = VarianceMonitor::new(1e-7, 1);
-
-        let mut weights = vec![0.5f32; 8];
-        let learning_rate = 1e-5f32;
-
-        // Simulate 50 gradient steps with progressively smaller gradients
-        let mut velocity_log = Vec::new();
-
-        for step in 0..50 {
-            // Gradients get smaller exponentially
-            let grad_scale = 1e-6 * (0.5f32).powi(step / 10);
-            let gradients: Vec<f32> = (0..8)
-                .map(|i| grad_scale * (i as f32 * 0.1 + 1.0))
-                .collect();
-
-            // Convert to BFP16 for transmission
-            let mut bfp_grads = Bfp16Vec::from_f32_slice(&gradients);
-
-            // Check for vanishing gradients and auto-tune
-            if let Some(shift) = monitor.observe_gradients(&gradients) {
-                VarianceMonitor::apply_correction(&mut bfp_grads, shift);
-            }
-
-            // Reconstruct and apply update
-            let recovered_grads = bfp_grads.to_vec_f32();
-            let velocity: f32 =
-                recovered_grads.iter().map(|g| g.abs()).sum::<f32>() / recovered_grads.len() as f32;
-
-            for (w, g) in weights.iter_mut().zip(recovered_grads.iter()) {
-                *w -= learning_rate * g;
-            }
-
-            velocity_log.push(velocity);
-        }
-
-        println!("--- Vanishing Gradient Recovery ---");
-        println!("Corrections applied: {}", monitor.corrections_count());
-        println!(
-            "Min magnitude observed: {:.2e}",
-            monitor.min_magnitude_observed()
-        );
-        println!(
-            "Final velocity: {:.2e}",
-            velocity_log.last().unwrap_or(&0.0)
-        );
-
-        // Verify non-zero learning velocity is maintained
-        let final_velocity = *velocity_log.last().unwrap_or(&0.0);
-        assert!(
-            final_velocity > 0.0,
-            "Learning velocity should be non-zero, got {:.2e}",
-            final_velocity
-        );
-
-        // Verify corrections were applied
-        assert!(
-            monitor.corrections_count() > 0,
-            "Auto-tuner should have applied corrections"
-        );
-
-        println!("BFP-16 AUTO-TUNING: VERIFIED (non-zero velocity maintained)");
-    }
-}
-
 /// Tensor Network MPS (Matrix Product State) Compressor
 /// Breaks a high-dimensional tensor into a chain of low-rank tensors (cores).
 ///
@@ -456,5 +311,150 @@ impl MpsCompressor {
             }
             h = half;
         }
+    }
+}
+
+#[cfg(test)]
+mod variance_monitor_tests {
+    use super::*;
+    use crate::consensus::krum::Bfp16Vec;
+
+    #[test]
+    fn test_no_correction_for_normal_gradients() {
+        let mut monitor = VarianceMonitor::default();
+        let gradients = vec![0.01, -0.02, 0.015, -0.005];
+
+        let result = monitor.observe_gradients(&gradients);
+        assert!(
+            result.is_none(),
+            "Normal gradients should not trigger correction"
+        );
+    }
+
+    #[test]
+    fn test_correction_triggers_for_vanishing_gradients() {
+        let mut monitor = VarianceMonitor::new(1e-7, 2);
+
+        // Feed vanishing gradients
+        let tiny_grads = vec![1e-9, -1e-9, 5e-10, -5e-10];
+
+        // First observation: increments counter but doesn't trigger yet
+        assert!(monitor.observe_gradients(&tiny_grads).is_none());
+
+        // Second observation: triggers correction
+        let shift = monitor.observe_gradients(&tiny_grads);
+        assert!(
+            shift.is_some(),
+            "Should trigger after 2 consecutive observations"
+        );
+
+        let shift_val = shift.unwrap();
+        assert!(shift_val > 0, "Shift should be positive");
+        println!("Correction shift: {} bits", shift_val);
+    }
+
+    #[test]
+    fn test_bfp16_auto_tuning_preserves_signal() {
+        let mut monitor = VarianceMonitor::new(1e-7, 1);
+
+        // Create a BFP16 vector with very small values
+        let small_data = vec![1e-8f32; 8];
+        let mut bfp = Bfp16Vec::from_f32_slice(&small_data);
+
+        println!(
+            "Before: exponent={}, mantissas={:?}",
+            bfp.exponent, bfp.mantissas
+        );
+        let before_values = bfp.to_vec_f32();
+        println!("Before values: {:?}", before_values);
+
+        // Check if correction is needed
+        if let Some(shift) = monitor.observe_gradients(&small_data) {
+            println!("Applying correction: shift={} bits", shift);
+            VarianceMonitor::apply_correction(&mut bfp, shift);
+        }
+
+        println!(
+            "After: exponent={}, mantissas={:?}",
+            bfp.exponent, bfp.mantissas
+        );
+        let after_values = bfp.to_vec_f32();
+        println!("After values: {:?}", after_values);
+
+        // The key test: values should still be non-zero
+        for (i, &v) in after_values.iter().enumerate() {
+            assert!(
+                v.abs() > 0.0,
+                "Value at index {} is zero after correction!",
+                i
+            );
+        }
+    }
+
+    #[test]
+    fn test_vanishing_gradient_learning_velocity() {
+        // Simulate a training loop with vanishing gradients
+        // and verify the auto-tuner maintains non-zero learning velocity
+        let mut monitor = VarianceMonitor::new(1e-7, 1);
+
+        let mut weights = [0.5f32; 8];
+        let learning_rate = 1e-5f32;
+
+        // Simulate 50 gradient steps with progressively smaller gradients
+        let mut velocity_log = Vec::new();
+
+        for step in 0..50 {
+            // Gradients get smaller exponentially
+            let grad_scale = 1e-6 * (0.5f32).powi(step / 10);
+            let gradients: Vec<f32> = (0..8)
+                .map(|i| grad_scale * (i as f32 * 0.1 + 1.0))
+                .collect();
+
+            // Convert to BFP16 for transmission
+            let mut bfp_grads = Bfp16Vec::from_f32_slice(&gradients);
+
+            // Check for vanishing gradients and auto-tune
+            if let Some(shift) = monitor.observe_gradients(&gradients) {
+                VarianceMonitor::apply_correction(&mut bfp_grads, shift);
+            }
+
+            // Reconstruct and apply update
+            let recovered_grads = bfp_grads.to_vec_f32();
+            let velocity: f32 =
+                recovered_grads.iter().map(|g| g.abs()).sum::<f32>() / recovered_grads.len() as f32;
+
+            for (w, g) in weights.iter_mut().zip(recovered_grads.iter()) {
+                *w -= learning_rate * g;
+            }
+
+            velocity_log.push(velocity);
+        }
+
+        println!("--- Vanishing Gradient Recovery ---");
+        println!("Corrections applied: {}", monitor.corrections_count());
+        println!(
+            "Min magnitude observed: {:.2e}",
+            monitor.min_magnitude_observed()
+        );
+        println!(
+            "Final velocity: {:.2e}",
+            velocity_log.last().unwrap_or(&0.0)
+        );
+
+        // Verify non-zero learning velocity is maintained
+        let final_velocity = *velocity_log.last().unwrap_or(&0.0);
+        assert!(
+            final_velocity > 0.0,
+            "Learning velocity should be non-zero, got {:.2e}",
+            final_velocity
+        );
+
+        // Verify corrections were applied
+        assert!(
+            monitor.corrections_count() > 0,
+            "Auto-tuner should have applied corrections"
+        );
+
+        println!("BFP-16 AUTO-TUNING: VERIFIED (non-zero velocity maintained)");
     }
 }

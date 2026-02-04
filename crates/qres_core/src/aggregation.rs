@@ -173,7 +173,11 @@ impl WeightedTrimmedMeanAggregator {
         if self.f * 2 >= n {
             return 1.0 / n as f32;
         }
-        let r_i = self.reputation_weights.get(node_index).copied().unwrap_or(0.0);
+        let r_i = self
+            .reputation_weights
+            .get(node_index)
+            .copied()
+            .unwrap_or(0.0);
         let total: f32 = self.reputation_weights.iter().sum();
         if total <= 0.0 {
             0.0
@@ -732,7 +736,10 @@ mod tests {
         let r1 = weighted_trimmed_mean(&updates, 1, &weights);
         let r2 = weighted_trimmed_mean(&updates, 1, &weights);
 
-        assert_eq!(r1.weights, r2.weights, "Determinism: same input -> same output");
+        assert_eq!(
+            r1.weights, r2.weights,
+            "Determinism: same input -> same output"
+        );
     }
 
     #[test]
@@ -778,11 +785,11 @@ mod tests {
             vec![1.0],
             vec![1.0],
             vec![1.0],
-            vec![2.0],    // Node 4: adversarial but within interior
+            vec![2.0], // Node 4: adversarial but within interior
             vec![1.0],
             vec![1.0],
             vec![1.0],
-            vec![100.0],  // bookend high (trimmed)
+            vec![100.0], // bookend high (trimmed)
         ];
 
         // Case A: Node 4 (adversarial) has near-zero reputation

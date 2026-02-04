@@ -248,7 +248,10 @@ mod tests {
         }
         assert_eq!(tracker2.get_score(&high_peer), 1.0);
         let capped = tracker2.influence_weight(&high_peer);
-        assert!((capped - 0.8).abs() < 0.001, "R=1.0 should be capped at 0.8");
+        assert!(
+            (capped - 0.8).abs() < 0.001,
+            "R=1.0 should be capped at 0.8"
+        );
     }
 
     #[test]
@@ -260,7 +263,10 @@ mod tests {
         }
         let fixed = tracker.influence_weight_fixed(&peer);
         // 0.8 in Q16.16 = 0.8 * 65536 = 52428
-        assert!((fixed - 52428).abs() <= 1, "Fixed-point influence should be ~52428");
+        assert!(
+            (fixed - 52428).abs() <= 1,
+            "Fixed-point influence should be ~52428"
+        );
         assert!(fixed >= 0, "Fixed-point influence must be non-negative");
     }
 
