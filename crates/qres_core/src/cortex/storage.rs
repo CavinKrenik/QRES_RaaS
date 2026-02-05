@@ -12,6 +12,16 @@ use alloc::vec::Vec;
 /// other persistence backends.
 ///
 /// Constraint: Must be `no_std` compatible; implementations may use `std`.
+///
+/// # Deprecation Notice (v20.2.0)
+///
+/// This trait will be renamed to `ModelPersistence` in v21.0.0 as part of the
+/// systems engineering terminology migration. The functionality remains unchanged;
+/// only the name will be updated. See [`docs/TECHNICAL_DEBT.md`](../../../docs/TECHNICAL_DEBT.md)
+/// for the full deprecation timeline.
+///
+/// **Migration Path:** Implementations should prepare for the rename by aliasing
+/// their implementations in v20.x releases. The trait signature will not change.
 pub trait GeneStorage {
     /// Save an evolved gene for a specific node.
     ///

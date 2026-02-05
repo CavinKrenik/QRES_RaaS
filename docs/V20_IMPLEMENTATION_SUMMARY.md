@@ -24,7 +24,7 @@
 
 ### Phase 3: Zoned Topology ✅
 - **Location:** [crates/qres_sim/evaluation/sentinel_simulation.py](crates/qres_sim/evaluation/sentinel_simulation.py)
-- **Features:** 4 zones, bridge R≥0.8, Lamarckian NVRAM persistence
+- **Features:** 4 zones, bridge R≥0.8, Non-Volatile State Persistence (NVRAM)
 - **Results:** 100% recovery verified, slander contained, 20 Storm rounds
 
 ### Phase 4: TEE Preparation ✅
@@ -46,12 +46,12 @@
 | INV-3 (Collusion Graceful) | ✅ PASS | 0.0419 avg error < 15% |
 | INV-4 (Regime Gate) | ✅ PASS | 20 Storm rounds |
 | INV-5 (Energy Guard) | ✅ PASS | 0 brownouts |
-| INV-6 (Lamarckian Recovery) | ✅ PASS | 0.0402 error < 0.05 |
+| INV-6 (Non-Volatile State Persistence Recovery) | ✅ PASS | 0.0402 error < 0.05 |
 
 **Attack Scenarios Tested:**
 - Sybil (33% attackers, rounds 40-60): High error injection (0.25)
 - Collusion (25% cartel, rounds 70-90): Erratic behavior (0.15)
-- Blackout (round 100): Total power loss + Lamarckian NVRAM recovery
+- Blackout (round 100): Total power loss + Non-Volatile State Persistence (NVRAM) recovery
 - Viral propagation: Peak 47 infected nodes (47% of network)
 
 **Output:**
@@ -134,7 +134,7 @@ cargo build --release --all-features
 5. ✅ Deterministic bit-check verified (100% reproducibility)
 6. ✅ Energy gate enforced (0 violations)
 7. ✅ ZKP validation working (L2 norm bounded)
-8. ✅ Lamarckian recovery verified (error 0.0402 < 0.05)
+8. ✅ Non-Volatile State Persistence recovery verified (error 0.0402 < 0.05)
 9. ✅ Storm regime quorum working (20 rounds triggered)
 10. ✅ Zoned topology functional (sentinel_simulation.py)
 11. ✅ EnclaveGate trait implemented (zk_proofs.rs)
@@ -159,7 +159,7 @@ cargo build --release --all-features
 
 ### Resilience
 - **Viral propagation:** 47% infection rate (straggler acceleration)
-- **Lamarckian recovery:** 100% weights restored post-blackout
+- **Non-Volatile State Persistence recovery:** 100% weights restored post-blackout
 - **Slander containment:** Victim reputation maintained > 0.5
 - **Zone isolation:** Bridge count 67 avg (R≥0.8 threshold)
 
@@ -181,7 +181,7 @@ cargo build --release --all-features
 ### Near-term (Priority 2)
 1. **Hardware TEE:** Port `SoftwareEnclaveGate` → `HardwareEnclaveGate` (Keystone/Penglai)
 2. **PMP configuration:** Set up Physical Memory Protection for energy accounting
-3. **Production monitoring:** Lamarckian recovery telemetry in real power failures
+3. **Production monitoring:** Non-Volatile State Persistence recovery telemetry in real power failures
 
 ### Research (Priority 3)
 1. **Adaptive bridges:** Dynamic zone boundaries based on load
@@ -233,7 +233,7 @@ All critical components implemented, tested, and verified:
 - ✅ Unified validation passing
 - ✅ Core module compiles
 - ✅ Byzantine resilience proven
-- ✅ Lamarckian recovery verified
+- ✅ Non-Volatile State Persistence recovery verified
 - ✅ TEE migration path documented
 
 **System is ready for embedded deployment on `no_std` targets.**

@@ -7,9 +7,9 @@
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
 [![Rust 2021](https://img.shields.io/badge/rust-2021-orange.svg)](https://www.rust-lang.org/)
 
-> **A decentralized, BFT-secure operating system for embedded sensor meshes achieving 99% bandwidth reduction via fixed-point model gossip.**
+> **A decentralized, BFT-secure operating system for embedded sensor meshes achieving 4.98x-31.8x bandwidth compression via fixed-point model gossip.**
 
-RaaS (Resource-Aware Agentic Swarm) is a `no_std` Rust implementation of deterministic decentralized learning using Q16.16 fixed-point consensus. The reference implementation (QRES) achieves 99% bandwidth reduction vs federated learning (8 KB/day vs 2.3 GB/day) while tolerating 30% Byzantine attackers through coordinate-wise trimmed-mean aggregation and reputation-weighted consensus.
+RaaS (Resource-Aware Agentic Swarm) is a `no_std` Rust implementation of deterministic decentralized learning using Q16.16 fixed-point consensus. The reference implementation (QRES) achieves 4.98x-31.8x compression vs federated learning (dataset-dependent: SmoothSine 31.8x, Wafer 4.98x, ECG5000 4.98x), translating to ~99% reduction (8 KB/day vs 2.3 GB/day typical FL baseline) while tolerating 30% Byzantine attackers through coordinate-wise trimmed-mean aggregation and reputation-weighted consensus.
 
 **v20.0 "Distributed Prediction Engine"** introduces cross-modal temporal attention fusion (TAAF) with event-driven sparse spiking, achieving a **3.6% error improvement over v19** (0.0351 RMSE floor, max drift 0.0005). The Adaptive Exponent (Rule 4) scales reputation weighting by swarm size: 2.0 for small (<20 nodes), 3.0 for medium, 3.5 for large (>50 nodes). Influence is capped at `rep^3 * 0.8` to mitigate Slander-Amplification. Non-Volatile State Persistence verified at 4% error delta across 8 brownout/recovery cycles with zero catastrophic knowledge loss.
 
@@ -54,7 +54,7 @@ stateDiagram-v2
 | Pillar | Mechanism | Result |
 |--------|-----------|--------|
 | **Determinism** | Q16.16 fixed-point arithmetic (I16F16) | Bit-perfect consensus across ARM/x86/RISC-V/WASM |
-| **Bandwidth** | Deterministic rematerialization + model bytecode gossip | 99% reduction vs federated learning (8 KB/day) |
+| **Bandwidth** | Deterministic rematerialization + model bytecode gossip | 4.98x-31.8x compression vs FL (dataset-dependent); ~99% reduction baseline (8 KB/day vs 2.3 GB/day) |
 | **Energy** | SNN-inspired sparse accounting + TWT radio scheduling | 21.9x advantage over ANN swarms; >80% sleep time in Calm regime |
 
 ---
@@ -66,7 +66,7 @@ stateDiagram-v2
 | Metric | Result | Context |
 |--------|--------|---------|
 | **Convergence** | <30 epochs to consensus | Verified on 100-node swarms with noise injection |
-| **Bandwidth** | 99% reduction vs federated learning | 8 KB/day vs 2.3 GB/day for traditional FL |
+| **Bandwidth** | 4.98x-31.8x compression vs FL (dataset-dependent) | SmoothSine 31.8x, Wafer 4.98x, ECG5000 4.98x; baseline ~99% reduction (8 KB/day vs 2.3 GB typical FL) |
 | **Scalability** | 10,000 nodes (100% success) | Azure Standard_D2s, verified Jan 2026 |
 | **Compression** | 4.98x-31.8x (dataset-dependent) | SmoothSine 31.8x, Wafer 4.98x, ECG5000 4.98x |
 | **Memory** | < 1 KB per node overhead | `no_std` + `alloc`, O(1) per node |

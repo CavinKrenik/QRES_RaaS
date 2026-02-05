@@ -6,6 +6,17 @@
 
 ---
 
+## ⚠️ Implementation Note
+
+**Current Status:** TWT scheduling uses `MockRadio` abstraction for simulation-based verification. Energy measurements are **theoretical** based on ESP32-C6 datasheet specifications:
+- **Active TX/RX:** ~230 mW
+- **Idle Listen:** ~80 mW  
+- **TWT Sleep:** ~35 mW
+
+**Hardware Validation:** Physical integration with native Wi-Fi 6 TWT drivers (ESP32-C6, ESP32-S3) planned for Q2 2026. Current 82% sleep savings are simulation-verified; real-world performance may vary based on AP capabilities, channel conditions, and TWT service period negotiation.
+
+---
+
 ## Overview
 
 Target Wake Time (TWT) is a Wi-Fi 6 (802.11ax) mechanism that allows stations to negotiate scheduled sleep/wake cycles with the access point. This module integrates TWT scheduling with QRES's regime-aware silence protocol, enabling nodes to coordinate radio sleep with swarm learning state.

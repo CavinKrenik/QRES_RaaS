@@ -44,6 +44,17 @@ pub struct SignedEpiphany {
     pub is_storm_mode: bool, // True if weights are I8F8 quantized
 }
 
+/// Type alias for forward compatibility with v21.0 terminology migration.
+/// 
+/// In v21.0.0, this struct will be renamed to `SignedModelUpdate` to use
+/// systems engineering terminology instead of biological metaphors.
+/// External integrations should begin migrating to the new name.
+#[deprecated(
+    since = "20.2.0",
+    note = "Use `SignedModelUpdate` terminology. This alias will be removed in v21.0. See docs/TECHNICAL_DEBT.md"
+)]
+pub type SignedModelUpdate = SignedEpiphany;
+
 impl SignedEpiphany {
     pub fn new(
         brain: LivingBrain,
