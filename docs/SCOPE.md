@@ -107,7 +107,7 @@ QRES is explicitly **not** designed for:
 
 # What QRES Is
 
-**QRES (Quantum-Resilient Evolutionary Swarm)** is a bandwidth-first distributed learning runtime designed for microcontroller-class edge devices (e.g., ESP32, ARM Cortex-M).
+**QRES** is a bandwidth-first distributed learning runtime designed for microcontroller-class edge devices (e.g., ESP32, ARM Cortex-M).
 
 It addresses the weight bottleneck in federated learning by replacing state transmission with deterministic rematerialization. Instead of sending model updates, nodes exchange minimal residuals ("surprises") and locally replay training steps to converge on identical model states.
 

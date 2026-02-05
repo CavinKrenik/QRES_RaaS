@@ -410,9 +410,9 @@ Q4 2026 (Aug-Oct) — Phase 3: Formal Verification
 3. ✅ Write unit tests for state transitions
 4. ✅ Run ablation gauntlet (compare vs v20 baseline)
 
-**Implementation Summary:** [docs/phase1_1_implementation_summary.md](phase1_1_implementation_summary.md)
+**Implementation Summary:** [../../RaaS_Extras/docs/phase1_1_implementation_summary.md](../../RaaS_Extras/docs/phase1_1_implementation_summary.md)
 
-**Test Results:**
+**Test Results:****
 - 6 unit tests passing
 - 3 integration tests passing
 - Zero compilation errors

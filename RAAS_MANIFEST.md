@@ -1,4 +1,4 @@
-# RaaS Manifest: Resource-Aware Agentic Swarm
+# RaaS Manifest: Resource-Aware Decentralized Node Mesh
 
 **Version:** 20.0.0
 **Author:** Cavin Krenik
@@ -8,7 +8,7 @@
 
 ## Thesis
 
-A swarm of autonomous agents operating on physical hardware faces constraints that cloud-hosted AI never encounters: finite battery, limited bandwidth, unreliable links, and adversarial neighbors. RaaS (Resource-Aware Agentic Swarm) is the architectural response to these constraints. It defines three pillars that any physically-grounded autonomous swarm must satisfy to survive indefinitely without human intervention.
+A decentralized node mesh of autonomous agents operating on physical hardware faces constraints that cloud-hosted AI never encounters: finite battery, limited bandwidth, unreliable links, and adversarial neighbors. RaaS (Resource-Aware Agentic Swarm) is the architectural response to these constraints. It defines three pillars that any physically-grounded autonomous swarm must satisfy to survive indefinitely without human intervention.
 
 ---
 

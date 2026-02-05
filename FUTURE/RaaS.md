@@ -1,7 +1,7 @@
 # RaaS: Resource-Aware Agentic Swarm
 
 **Status:** ✅ Implemented 
-**Reference:** `docs/theory/SNN_ENERGY_ANALYSIS.md` (21.9x energy reduction)
+**Reference:** `../../RaaS_Extras/docs/theory/SNN_ENERGY_ANALYSIS.md` (21.9x energy reduction)
 
 ---
 

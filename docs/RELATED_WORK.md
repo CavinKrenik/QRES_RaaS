@@ -32,7 +32,7 @@ This document positions QRES within the distributed systems landscape and detail
 ### Krum (Blanchard et al., 2017)
 - **Key Idea:** Select update with minimum distance to neighbors to reject outliers.
 - **Tolerance:** f < (n-2)/2.
-- **Relation to QRES:** QRES implements Krum as a "Gatekeeper" to reject malicious genes before they enter the local population.
+- **Relation to QRES:** QRES implements Krum as a "Gatekeeper" to reject malicious model bytecode packets before they enter the local population.
 
 ---
 
@@ -40,7 +40,7 @@ This document positions QRES within the distributed systems landscape and detail
 
 ### DP-SGD (Abadi et al., 2016)
 - **Key Idea:** Clip gradients and add Gaussian noise during training.
-- **Relation to QRES:** QRES implements Node-Level DP by adding noise to the transmitted gene residuals, ensuring no single node's data can be reconstructed from the swarm's evolution.
+- **Relation to QRES:** QRES implements Node-Level DP by adding noise to the transmitted model bytecode residuals, ensuring no single node's data can be reconstructed from the swarm's evolution.
 
 ---
 
@@ -67,11 +67,11 @@ While QRES builds on the foundations above, it introduces several **novel archit
 - Eliminates complex reconciliation protocols required by float-based systems.
 - Enables **cryptographic proofs** of consensus that are legally auditable.
 
-### B. Lamarckian "Hippocampus" Persistence — *"Memories Survive Death"*
+### B. Non-Volatile State Persistence Layer — *"Memories Survive Death"*
 
 **Problem:** Standard Evolutionary Strategies (ES) are Darwinian: agents die, and only their offspring inherit traits. This is inefficient for IoT devices that frequently reboot due to power instability.
 
-**Innovation:** The **Hippocampus** layer (implemented via the `GeneStorage` trait) enables **Lamarckian Evolution**. Nodes serialize their "learned instincts" (bytecode) to non-volatile storage before shutdown.
+**Innovation:** The **Persistent Storage Layer** (implemented via the `GeneStorage` trait) enables **Non-Volatile State Persistence**. Nodes serialize their "learned instincts" (bytecode) to non-volatile storage before shutdown.
 
 **Why It Matters:**
 - A swarm survives **total power failure** and resumes evolution exactly where it left off.
@@ -90,11 +90,11 @@ While QRES builds on the foundations above, it introduces several **novel archit
 - Eliminates the need for trusted oracles or central coordinators.
 - Creates a natural incentive structure: better predictions = more influence.
 
-### D. Emergent Gene Gossip under Physics Constraints — *"Evolution in the Wild"*
+### D. Emergent Model Bytecode Gossip under Physics Constraints — *"Evolution in the Wild"*
 
 **Problem:** Existing P2P learning simulations often ignore network physics (MTU limits, packet loss, latency). This leads to unrealistic assumptions about model transfer.
 
-**Innovation:** QRES simulates the **physical "viral" spread** of intelligence. Evolved bytecode ("Genes") must be fragmented into 1400-byte packets to traverse the network. High-entropy noise zones cause packet loss, physically preventing large, complex models from spreading.
+**Innovation:** QRES simulates the **physical "viral" spread** of intelligence. Evolved bytecode ("Model Bytecode Packets") must be fragmented into 1400-byte packets to traverse the network. High-entropy noise zones cause packet loss, physically preventing large, complex models from spreading.
 
 **Why It Matters:**
 - Creates an **evolutionary pressure for compactness**. The swarm naturally selects for smaller, more efficient models.

@@ -1,11 +1,11 @@
 # QRES v19 Protocol Specification
 
 ## Overview
-QRES v19 is a protocol for decentralized neural consensus. While it produces `.qres` artifacts (saved genes), its primary function is defining the `SwarmNeuron` trait for behavior and the Gossip headers used for gene propagation.
+QRES v19 is a protocol for decentralized neural consensus. While it produces `.qres` artifacts (saved model bytecode packets), its primary function is defining the `SwarmNeuron` trait for behavior and the Gossip headers used for model bytecode propagation.
 
 ## Core Specifications
 1. **The Neuron Protocol:** Defines how nodes compute residuals (`I16F16`) and BFP gradients (`Bfp16Vec`).
-2. **The Gene Format:** A bytecode serialization standard for transmitting learned strategies across the gossip network.
+2. **The Model Bytecode Format:** A bytecode serialization standard for transmitting learned strategies across the gossip network.
 3. **Consensus:** A deterministic, reputation-weighted agreement mechanism using Trimmed Mean Aggregation.
 
 ---
@@ -49,7 +49,7 @@ Contains compressed residuals (prediction errors).
 | :--- | :--- | :--- |
 | Block ID | 1 byte | `0x0D` |
 | Compressed Len | 4 bytes | Size of bit-packed payload |
-### 3.3 Summary Gene (Type `0x13`) - v19.0
+### 3.3 Summary Bytecode Packet (Type `0x13`) - v19.0
 Contains rapid onboarding state.
 
 | Field | Size | Details |

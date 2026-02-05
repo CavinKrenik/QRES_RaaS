@@ -1,6 +1,22 @@
 # QRES Image Gallery
 
-This document showcases all visualizations and diagrams used in the QRES project documentation.
+This document showcases visualizations and diagrams currently used in the QRES project documentation. Additional images have been archived in [RaaS_Extras/docs/images/](../../RaaS_Extras/docs/images/).
+
+---
+
+## Consensus Evolution
+
+![Consensus Evolution](images/consensus_evolution.gif)
+
+Time-series visualization of decentralized consensus convergence showing 100 nodes reaching agreement on shared model state through gossip protocol with Byzantine tolerance.
+
+---
+
+## Neural Swarm Visualization
+
+![Neural Swarm Visualization](images/SwarmVisual.gif)
+
+3D Bevy simulator visualization showing emergent swarm behavior with regime transitions (Calm/PreStorm/Storm) and reputation-weighted topology evolution.
 
 ---
 

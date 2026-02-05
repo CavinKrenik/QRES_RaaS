@@ -194,6 +194,6 @@ With rep^3 weighting, slander detection becomes **critical for bridge nodes**:
 
 ## References
 
-- PAC Reputation Bounds: `docs/theory/PAC_REPUTATION_BOUNDS.md`
+- PAC Reputation Bounds: `../../RaaS_Extras/docs/theory/PAC_REPUTATION_BOUNDS.md`
 - Class C Defense: `docs/security/CLASS_C_DEFENSE.md`
 - Security Invariants: `docs/security/INVARIANTS.md`

@@ -1,12 +1,12 @@
 [workspace]
 members = [
-    "crates/qres_core",
-    "crates/qres_daemon",
-    "crates/qres_sim",
-    "crates/qres_wasm",
-    "evaluation/benchmarks",
-    "examples/virtual_iot_network",
-    "tools/swarm_sim"
+    "crates/qres_core",              # no_std deterministic runtime (Q16.16 fixed-point consensus, Byzantine aggregation, ZK proofs)
+    "crates/qres_daemon",            # P2P edge daemon (libp2p gossipsub) + REST API for node management
+    "crates/qres_sim",               # Simulation and evaluation engine for swarm dynamics and regime testing
+    "crates/qres_wasm",              # WebAssembly bindings for browser-based visualization and edge deployment
+    "evaluation/benchmarks",         # Performance harness for convergence, bandwidth, and Byzantine tolerance metrics
+    "examples/virtual_iot_network",  # Demo application: 100-node virtual IoT deployment with noise injection
+    "tools/swarm_sim"                # Bevy 3D simulator: emergent behavior visualization (legacy, pre-qres_sim)
 ]
 resolver = "2"
 

@@ -5965,7 +5965,7 @@ dependencies = [
 
 [[package]]
 name = "qres_core"
-version = "20.0.0"
+version = "20.0.1"
 dependencies = [
  "anyhow",
  "blake3",

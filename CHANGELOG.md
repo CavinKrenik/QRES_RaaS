@@ -9,7 +9,7 @@ Adaptive Reputation Exponent (Rule 4): Swarm-size scaling (2.0/<20 nodes, 3.0/20
 
 Influence Cap: INFLUENCE_CAP = 0.8 in reputation.rs, with influence_weight() and influence_weight_fixed() methods.
 
-HSTP Semantic Middleware: SemanticEnvelope wrapping genes in JSON-LD with W3C DID (did:qres:<hex>), RDF provenance triples, and HstpDescriptor for IEEE 7007-2021 broker registration.
+HSTP Semantic Middleware: SemanticEnvelope wrapping model bytecode packets in JSON-LD with W3C DID (did:qres:<hex>), RDF provenance triples, and HstpDescriptor for IEEE 7007-2021 broker registration.
 
 Viral Epidemic AD-SGD: GhostUpdate extended with residual_error, accuracy_delta, cure_threshold(), can_infect(), and epidemic_priority().
 
@@ -52,9 +52,9 @@ Trimmed Mean Aggregator: Neutralizes "Inlier Bias" attacks (Drift < 0.05% verifi
 
 BFP-16 Precision: Introduced Block Floating Point for gradient headers to solve the "Vanishing Gradient" problem in fixed-point math.
 
-Summary Gene Protocol: Compact 74-byte onboarding state achieves 2,133:1 compression vs history replay.
+Summary Bytecode Packet Protocol: Compact 74-byte onboarding state achieves 2,133:1 compression vs history replay.
 
-[v18.0.0] - 2026-01-15 "Lamarckian Persistence"
+[v18.0.0] - 2026-01-15 "Non-Volatile State Persistence"
 Added
 Neural Swarm Simulator: tools/swarm_sim (Bevy-based) for visualizing 3D emergent behavior and regime transitions.
 
