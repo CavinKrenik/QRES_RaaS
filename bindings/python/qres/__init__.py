@@ -91,3 +91,6 @@ def open(filename, mode="rb"):
     Open a QRES compressed file in binary mode.
     """
     return QRESFile(filename, mode)
+
+# Alias for compatibility with examples/documentation
+QRES_API = QRES
