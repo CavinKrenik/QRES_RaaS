@@ -6,7 +6,7 @@ __version__ = "18.0.0"
 
 # Import the Rust extension (module name fixed to qres.qres_rust)
 from . import qres_rust
-    
+
 # Expose bindings directly for advanced users
 encode_bytes = qres_rust.encode_bytes
 decode_bytes = qres_rust.decode_bytes
@@ -22,7 +22,7 @@ class QRES:
     QRES (Quantum-Relational Encoding System) Codec.
     High-performance, bit-packed delta encoding for time-series and predictable data.
     """
-    
+
     @staticmethod
     def compress(data: Union[bytes, bytearray, np.ndarray], predictor_id: int = 0) -> bytes:
         """
@@ -51,7 +51,7 @@ class QRES:
         """
         if not isinstance(data, (bytes, bytearray)):
              raise TypeError(f"Unsupported type {type(data)}. Expected bytes.")
-             
+
         try:
             return decode_bytes(data, predictor_id)
         except Exception as e:
@@ -68,21 +68,21 @@ class QRESFile(io.BufferedIOBase):
     def __init__(self, filename, mode="rb"):
         self._file = open(filename, mode)
         self._mode = mode
-            
+
     def read(self, size=-1):
         raw = self._file.read()
         return decompress(raw)
-        
+
     def write(self, data):
         compressed = compress(data)
         self._file.write(compressed)
-        
+
     def close(self):
         self._file.close()
-        
+
     def __enter__(self):
         return self
-        
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
