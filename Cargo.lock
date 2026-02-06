@@ -5989,6 +5989,7 @@ dependencies = [
  "serde_json",
  "tract-onnx",
  "walkdir",
+ "wgpu",
  "wide",
  "x25519-dalek",
 ]

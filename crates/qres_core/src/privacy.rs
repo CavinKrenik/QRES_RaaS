@@ -105,10 +105,10 @@ impl DifferentialPrivacy {
 
             // Create measurement
             let meas = make_gaussian(domain, metric, sensitivity, self.epsilon, Some(self.delta))
-                .map_err(|e| e.to_string())?;
+                .map_err(|e: opendp::error::Error| e.to_string())?;
 
             // Invoke measurement
-            let noisy = meas.invoke(&data_f64).map_err(|e| e.to_string())?;
+            let noisy = meas.invoke(&data_f64).map_err(|e: opendp::error::Error| e.to_string())?;
 
             // Copy back to update vector
             if noisy.len() != update.len() {

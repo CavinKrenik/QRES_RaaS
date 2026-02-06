@@ -457,7 +457,7 @@ fn bytes_to_hex(bytes: &[u8]) -> String {
 }
 
 fn hex_to_bytes(hex: &str) -> Option<Vec<u8>> {
-    if !hex.len().is_multiple_of(2) {
+    if hex.len() % 2 != 0 {
         return None;
     }
     let mut bytes = Vec::with_capacity(hex.len() / 2);

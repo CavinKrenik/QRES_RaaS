@@ -80,7 +80,7 @@ impl CollisionAuditor {
             return false;
         }
 
-        let is_audit_round = round.is_multiple_of(self.config.audit_interval);
+let is_audit_round = round % self.config.audit_interval == 0;
         let has_activity = current_entropy >= self.config.entropy_threshold;
 
         is_audit_round && has_activity

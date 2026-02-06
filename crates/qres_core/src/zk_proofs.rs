@@ -385,7 +385,7 @@ impl StochasticAuditor {
 
     /// Check whether an audit should occur this round.
     pub fn should_audit(&self, round: u64) -> bool {
-        round > 0 && round.is_multiple_of(self.config.audit_interval)
+        round > 0 && round % self.config.audit_interval == 0
     }
 
     /// Deterministically generate a challenge for the given round.

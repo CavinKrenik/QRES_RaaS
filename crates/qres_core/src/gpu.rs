@@ -17,17 +17,17 @@ impl GpuEngine {
         #[cfg(feature = "gpu")]
         {
             let instance = wgpu::Instance::default();
-            let adapter = instance
+            let adapter: wgpu::Adapter = instance
                 .request_adapter(&wgpu::RequestAdapterOptions::default())
                 .await?;
 
-            let (device, queue) = adapter
+            let (device, queue): (wgpu::Device, wgpu::Queue) = adapter
                 .request_device(&wgpu::DeviceDescriptor::default(), None)
                 .await
                 .ok()?;
 
             // Shader for dot-product mixing (WGSL)
-            let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            let shader: wgpu::ShaderModule = device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("Mixer Shader"),
                 source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(
                     r#"
