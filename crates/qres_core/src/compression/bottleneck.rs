@@ -298,7 +298,7 @@ mod tests {
         // Train for many epochs
         let mut last_loss = f32::MAX;
         for epoch in 0..200 {
-            let loss = ae.train_batch(&samples, 0.01);
+            let loss = ae.train_batch(&samples, 0.05);
             if epoch % 50 == 0 {
                 println!("Epoch {}: loss = {:.6}", epoch, loss);
             }
