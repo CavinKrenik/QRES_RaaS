@@ -128,7 +128,12 @@ async fn get_brain_wisdom() -> Json<serde_json::Value> {
 }
 
 async fn get_stats() -> Json<crate::stats::CompressionStats> {
-    let stats = crate::stats::GLOBAL_STATS.lock().unwrap();
+    let stats = crate::stats::GLOBAL_STATS
+        .lock()
+        .unwrap_or_else(|poisoned| {
+            tracing::warn!("Stats mutex was poisoned, recovering");
+            poisoned.into_inner()
+        });
     Json(stats.clone())
 }
 

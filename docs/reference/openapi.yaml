@@ -1,0 +1,316 @@
+openapi: 3.0.3
+info:
+  title: QRES RaaS API
+  description: |
+    QRES exposes two HTTP API surfaces:
+    - **P2P Status API** (default port 8080, set via `--port`): Real-time swarm status from the running node.
+    - **Management API** (default port 3030, set via `[api] port` in config.toml): Daemon lifecycle, stats, and configuration.
+  version: "21.0.0"
+  license:
+    name: MIT OR Apache-2.0
+
+servers:
+  - url: http://localhost:8080
+    description: P2P Status API (--port flag)
+  - url: http://localhost:3030
+    description: Management API ([api] port in config.toml)
+
+tags:
+  - name: P2P Status
+    description: Real-time swarm status endpoints (served by the P2P node process)
+  - name: Management
+    description: Daemon lifecycle and analytics (served by the management API)
+
+paths:
+  # ── P2P Status API (port 8080) ────────────────────────────────
+  /status:
+    get:
+      tags: [P2P Status]
+      summary: Get swarm status
+      description: Returns peer connectivity, brain confidence, and energy metrics.
+      responses:
+        "200":
+          description: Current swarm status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SwarmStatus"
+
+  /brain:
+    get:
+      tags: [P2P Status]
+      summary: Get current brain state
+      description: Returns the full LivingBrain JSON including predictors, confidence, and weights.
+      responses:
+        "200":
+          description: Current brain state
+          content:
+            application/json:
+              schema:
+                type: object
+                description: LivingBrain JSON (structure varies by version)
+
+  /health:
+    get:
+      tags: [P2P Status, Management]
+      summary: Health check
+      description: |
+        Returns service health. Available on both P2P and Management API ports.
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  # ── Management API (port 3030) ────────────────────────────────
+  /api/status:
+    get:
+      tags: [Management]
+      summary: Get daemon status
+      description: Returns whether the daemon process is running, its PID, and optional metrics.
+      responses:
+        "200":
+          description: Daemon status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+
+  /api/swarm/start:
+    post:
+      tags: [Management]
+      summary: Start the P2P daemon
+      description: Launches the swarm node with optional WAN mode and gossip interval.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartRequest"
+      responses:
+        "200":
+          description: Daemon started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "500":
+          description: Failed to start
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/swarm/stop:
+    post:
+      tags: [Management]
+      summary: Stop the P2P daemon
+      responses:
+        "200":
+          description: Daemon stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "500":
+          description: Failed to stop
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/brain/wisdom:
+    get:
+      tags: [Management]
+      summary: Get brain state from disk
+      description: Reads qres_brain.json and returns the brain state, or an error object if not found.
+      responses:
+        "200":
+          description: Brain JSON or error
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/stats:
+    get:
+      tags: [Management]
+      summary: Get compression statistics
+      description: Returns global compression/decompression counters and engine usage.
+      responses:
+        "200":
+          description: Compression statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompressionStats"
+
+  /api/analytics:
+    get:
+      tags: [Management]
+      summary: Get brain history
+      description: Returns historical brain snapshots (timestamp, confidence, wisdom level).
+      responses:
+        "200":
+          description: Brain history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrainHistory"
+
+  /api/config:
+    get:
+      tags: [Management]
+      summary: Get current configuration
+      description: Returns the active daemon configuration (loaded from ~/.qres/config.toml or defaults).
+      responses:
+        "200":
+          description: Current configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Config"
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, version]
+      properties:
+        status:
+          type: string
+          example: ok
+        version:
+          type: string
+          example: "21.0.0"
+
+    SwarmStatus:
+      type: object
+      properties:
+        peer_id:
+          type: string
+          description: Local libp2p PeerId
+          example: "12D3KooWAbCdEf..."
+        connected_peers:
+          type: integer
+          description: Number of currently connected peers
+        known_peers:
+          type: array
+          items:
+            type: string
+          description: List of known peer IDs
+        brain_confidence:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Per-predictor confidence scores
+        total_energy_consumed:
+          type: integer
+          format: int64
+          description: Cumulative energy units consumed
+        energy_efficiency_ratio:
+          type: number
+          format: float
+          description: Useful work / total energy
+
+    StatusResponse:
+      type: object
+      properties:
+        running:
+          type: boolean
+        pid:
+          type: integer
+          nullable: true
+        metrics:
+          type: object
+          nullable: true
+
+    StartRequest:
+      type: object
+      properties:
+        wan:
+          type: boolean
+          description: Enable WAN mode (Kademlia DHT)
+          default: false
+        gossip_interval:
+          type: integer
+          format: int64
+          description: Gossip interval in milliseconds
+          default: 600
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    CompressionStats:
+      type: object
+      description: Global compression/decompression counters and engine usage breakdown.
+
+    BrainHistory:
+      type: object
+      description: Array of historical brain snapshots with timestamps and confidence levels.
+
+    Config:
+      type: object
+      description: Full daemon configuration. See config.example.toml for field documentation.
+      properties:
+        swarm:
+          type: object
+          properties:
+            gossip_interval:
+              type: integer
+            wan_mode:
+              type: boolean
+            max_peers:
+              type: integer
+        security:
+          type: object
+          properties:
+            ban_duration:
+              type: integer
+            max_violations:
+              type: integer
+            require_signatures:
+              type: boolean
+        aggregation:
+          type: object
+          properties:
+            mode:
+              type: string
+              enum: [mean, krum, multi_krum, trimmed_mean, median]
+            expected_byzantines_fraction:
+              type: number
+              format: float
+            buffer_size:
+              type: integer
+            trim_fraction:
+              type: number
+              format: float
+        api:
+          type: object
+          properties:
+            port:
+              type: integer
+            enabled:
+              type: boolean
+        privacy:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+            epsilon:
+              type: number
+              format: float
+            delta:
+              type: number
+              format: float
+            clipping_threshold:
+              type: number
+              format: float
+            secure_aggregation:
+              type: boolean

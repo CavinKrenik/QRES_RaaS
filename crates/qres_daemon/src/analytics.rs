@@ -17,9 +17,7 @@ pub struct BrainHistory {
 
 impl BrainHistory {
     fn get_history_path() -> PathBuf {
-        let mut path = dirs::home_dir().expect("Could not find home directory");
-        path.push(".qres");
-        fs::create_dir_all(&path).expect("Could not create .qres directory");
+        let mut path = crate::config::qres_data_dir();
         path.push("brain_history.json");
         path
     }

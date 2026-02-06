@@ -1,6 +1,30 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
+use tracing::warn;
+
+/// Returns the ~/.qres directory, creating it if needed.
+/// Falls back to a local `.qres` directory if the home directory cannot be determined.
+pub fn qres_data_dir() -> PathBuf {
+    match dirs::home_dir() {
+        Some(mut path) => {
+            path.push(".qres");
+            if let Err(e) = fs::create_dir_all(&path) {
+                warn!(error = %e, "Could not create ~/.qres, falling back to local .qres");
+                let fallback = PathBuf::from(".qres");
+                let _ = fs::create_dir_all(&fallback);
+                return fallback;
+            }
+            path
+        }
+        None => {
+            warn!("Could not determine home directory, falling back to local .qres");
+            let fallback = PathBuf::from(".qres");
+            let _ = fs::create_dir_all(&fallback);
+            fallback
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PrivacyConfig {
@@ -160,9 +184,7 @@ impl Default for AggregationConfig {
 
 impl Config {
     pub fn get_config_path() -> PathBuf {
-        let mut path = dirs::home_dir().expect("Could not find home directory");
-        path.push(".qres");
-        fs::create_dir_all(&path).expect("Could not create .qres directory");
+        let mut path = qres_data_dir();
         path.push("config.toml");
         path
     }

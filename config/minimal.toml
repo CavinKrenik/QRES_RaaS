@@ -1,0 +1,21 @@
+# Minimal configuration for local testing and development.
+# Fastest startup, no security overhead, simple averaging.
+
+[swarm]
+gossip_interval = 1000
+wan_mode = false
+max_peers = 5
+
+[security]
+require_signatures = false
+
+[aggregation]
+mode = "mean"
+buffer_size = 2
+
+[api]
+port = 3030
+enabled = true
+
+[privacy]
+enabled = false

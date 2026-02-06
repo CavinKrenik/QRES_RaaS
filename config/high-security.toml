@@ -1,0 +1,24 @@
+# High-security configuration for adversarial environments.
+# Maximum Byzantine tolerance and privacy, at the cost of convergence speed.
+
+[swarm]
+gossip_interval = 600
+wan_mode = false
+max_peers = 50
+
+[security]
+ban_duration = 86400
+max_violations = 1
+require_signatures = true
+
+[aggregation]
+mode = "krum"
+expected_byzantines_fraction = 0.3
+buffer_size = 10
+
+[privacy]
+enabled = true
+epsilon = 0.1
+delta = 1e-7
+clipping_threshold = 0.5
+secure_aggregation = true

@@ -48,9 +48,7 @@ impl SingularityMetrics {
     }
 
     fn get_csv_path() -> PathBuf {
-        let mut path = dirs::home_dir().expect("Could not find home directory");
-        path.push(".qres");
-        fs::create_dir_all(&path).expect("Could not create .qres directory");
+        let mut path = crate::config::qres_data_dir();
         path.push("singularity_metrics.csv");
         path
     }
@@ -101,9 +99,7 @@ impl Default for CompressionStats {
 
 impl CompressionStats {
     fn get_stats_path() -> PathBuf {
-        let mut path = dirs::home_dir().expect("Could not find home directory");
-        path.push(".qres");
-        fs::create_dir_all(&path).expect("Could not create .qres directory");
+        let mut path = crate::config::qres_data_dir();
         path.push("stats.json");
         path
     }

@@ -333,7 +333,14 @@ cargo build -p qres_daemon --release
 
 # 3D Simulator
 cargo run -p swarm_sim --release
+
+# Generate local API docs (opens in browser)
+make doc
 ```
+
+> **Tip:** The [Makefile](Makefile) provides convenience targets for all common operations:
+> `make test`, `make clippy`, `make bench`, `make coverage`, `make build-release`, and more.
+> Run `make help` for the full list.
 
 ### Run the Neural Swarm Simulator
 

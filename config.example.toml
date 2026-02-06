@@ -1,0 +1,85 @@
+# QRES Daemon Configuration Reference
+# Copy to ~/.qres/config.toml and customize.
+# All fields are optional; defaults shown below.
+
+[swarm]
+# Gossip interval in milliseconds (brain broadcast cadence)
+# Range: 100-60000. Lower = more bandwidth, faster convergence.
+gossip_interval = 600
+
+# Enable WAN mode for cross-network discovery (Kademlia DHT).
+# false = mDNS only (local network), true = global DHT.
+wan_mode = false
+
+# Maximum number of connected peers.
+# Range: 5-200.
+max_peers = 50
+
+[security]
+# Duration in seconds to ban a misbehaving peer.
+# Range: 60-86400.
+ban_duration = 3600
+
+# Number of violations before a peer is banned.
+# Range: 1-10.
+max_violations = 2
+
+# Require ed25519 signatures on all model updates.
+# When true, unsigned updates are silently rejected.
+require_signatures = false
+
+# Path to ed25519 private key file (32 bytes raw).
+# Omit to auto-generate at ~/.qres/node_key.
+# key_path = "/path/to/node.key"
+
+# Trusted peer IDs (libp2p PeerId format).
+# trusted_peers = ["12D3KooW..."]
+
+# Trusted public keys in hex (32-byte ed25519).
+# trusted_pubkeys = ["aabbccdd..."]
+
+[aggregation]
+# Algorithm: "mean", "krum", "multi_krum", "trimmed_mean", "median".
+mode = "mean"
+
+# Expected fraction of Byzantine (malicious) nodes.
+# INVARIANT: Must be < 0.33 for Byzantine fault tolerance (INV-3).
+# Krum requires n >= 2f+3 where f = floor(n * fraction).
+# Range: 0.0-0.32.
+expected_byzantines_fraction = 0.2
+
+# Number of updates to buffer before running aggregation.
+# Range: 2-100. Larger = smoother but slower convergence.
+buffer_size = 5
+
+# Trim fraction for trimmed_mean (trims this fraction from each tail).
+# Range: 0.0-0.49. E.g., 0.2 trims the bottom and top 20%.
+trim_fraction = 0.2
+
+[api]
+# REST management API port.
+# The P2P status API runs on the --port flag (default 8080).
+port = 3030
+
+# Enable/disable the REST management API.
+enabled = true
+
+[privacy]
+# Enable differential privacy noise injection on outgoing model updates.
+enabled = false
+
+# Privacy budget epsilon (lower = more private, noisier).
+# Range: 0.01-10.0. Values below 1.0 provide strong guarantees.
+epsilon = 1.0
+
+# Failure probability delta.
+# Range: 1e-7 to 1e-3. Smaller = stronger guarantee.
+delta = 1e-5
+
+# L2 norm clipping threshold for gradient updates.
+# Range: 0.1-10.0. Updates exceeding this norm are scaled down.
+clipping_threshold = 1.0
+
+# Enable pairwise masking for secure aggregation.
+# Adds x25519 key exchange overhead but hides individual updates from the server.
+secure_aggregation = false

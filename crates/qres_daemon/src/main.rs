@@ -25,6 +25,8 @@ use tracing::{error, info};
 
 const DEFAULT_BRAIN_FILE: &str = "qres_brain.json";
 const CHUNK_SIZE: usize = 64 * 1024; // 64KB chunks
+/// Byte threshold for progress reporting during compression/decompression (1 MiB).
+const PROGRESS_THRESHOLD: u64 = 1024 * 1024;
 
 #[derive(Parser)]
 #[command(name = "qres-cli")]
@@ -164,7 +166,7 @@ fn compress_file(input: &str, output: &str, config: &QresConfig) -> io::Result<(
         total_output += compressed.len() as u64 + 4;
 
         // Progress indicator
-        if total_input >= 1024 * 1024 && total_input.is_multiple_of(1024 * 1024) {
+        if total_input >= PROGRESS_THRESHOLD && total_input.is_multiple_of(PROGRESS_THRESHOLD) {
             let ratio = (total_output as f64 / total_input as f64) * 100.0;
             info!(
                 current_input_mb = total_input as f64 / 1024.0 / 1024.0,
@@ -274,7 +276,7 @@ fn decompress_file(input: &str, output: &str) -> io::Result<()> {
         total_output += decompressed.len() as u64;
 
         // Progress indicator
-        if total_output >= 1024 * 1024 && total_output.is_multiple_of(1024 * 1024) {
+        if total_output >= PROGRESS_THRESHOLD && total_output.is_multiple_of(PROGRESS_THRESHOLD) {
             info!(
                 decompressed_mb = total_output as f64 / 1024.0 / 1024.0,
                 "Decompressing..."

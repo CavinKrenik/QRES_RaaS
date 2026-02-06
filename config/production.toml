@@ -1,0 +1,29 @@
+# Production configuration for real-world deployments.
+# Balanced security, privacy, and performance.
+
+[swarm]
+gossip_interval = 600
+wan_mode = false
+max_peers = 50
+
+[security]
+ban_duration = 7200
+max_violations = 3
+require_signatures = true
+
+[aggregation]
+mode = "trimmed_mean"
+expected_byzantines_fraction = 0.2
+buffer_size = 10
+trim_fraction = 0.2
+
+[api]
+port = 3030
+enabled = true
+
+[privacy]
+enabled = true
+epsilon = 1.0
+delta = 1e-5
+clipping_threshold = 1.0
+secure_aggregation = false

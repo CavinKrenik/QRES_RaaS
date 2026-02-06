@@ -8,10 +8,7 @@ pub struct DaemonManager;
 
 impl DaemonManager {
     fn get_qres_dir() -> PathBuf {
-        let mut path = dirs::home_dir().expect("Could not find home directory");
-        path.push(".qres");
-        fs::create_dir_all(&path).expect("Could not create .qres directory");
-        path
+        crate::config::qres_data_dir()
     }
 
     pub fn get_pid_file() -> PathBuf {
