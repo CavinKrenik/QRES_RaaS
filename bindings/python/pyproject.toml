@@ -7,7 +7,7 @@ name = "qres-raas"
 version = "21.0.0"
 description = "Resource-Aware Decentralized Node Mesh: Byzantine-tolerant compression and P2P gossip for edge computing"
 readme = "README.md"
-authors = [{name = "Cavin Krenik", email = "cavin.krenik@example.com"}]
+authors = [{name = "Cavin Krenik", email = "cavinkrenik5@icloud.com"}]
 license = {text = "MIT OR Apache-2.0"}
 requires-python = ">=3.8"
 keywords = [

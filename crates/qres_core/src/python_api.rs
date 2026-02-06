@@ -83,7 +83,7 @@ fn qres_rust(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compress_matrix_v1, m)?)?;
 
     // Expose module version to Python
-    m.add("__version__", "18.0.0")?;
+    m.add("__version__", "21.0.0")?;
 
     Ok(())
 }

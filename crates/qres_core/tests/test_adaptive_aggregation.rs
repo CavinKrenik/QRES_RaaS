@@ -72,7 +72,7 @@ fn test_adaptive_full_lifecycle() {
         let result = agg.aggregate(&updates);
 
         // Compute drift from true weights
-        let drift: f32 = result
+        let _drift: f32 = result
             .weights
             .iter()
             .zip(&true_weights)

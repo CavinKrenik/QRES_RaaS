@@ -2,7 +2,7 @@ from typing import Union, Optional, Literal
 import numpy as np
 import io
 
-__version__ = "18.0.0"
+__version__ = "21.0.0"
 
 # Import the Rust extension (module name fixed to qres.qres_rust)
 from . import qres_rust
@@ -22,6 +22,11 @@ class QRES:
     QRES (Quantum-Relational Encoding System) Codec.
     High-performance, bit-packed delta encoding for time-series and predictable data.
     """
+
+
+    def __init__(self, *args, **kwargs):
+        """Allow instantiation with arguments to prevent TypeErrors in some environments."""
+        pass
 
     @staticmethod
     def compress(data: Union[bytes, bytearray, np.ndarray], predictor_id: int = 0) -> bytes:
