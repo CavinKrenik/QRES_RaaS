@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "qres"
-version = "20.0.0"
+version = "21.0.0"
 description = "QRES RaaS: Resource-Aware Agentic Swarm for Python"
 readme = "README.md"
 authors = [{name = "Cavin Krenik"}]

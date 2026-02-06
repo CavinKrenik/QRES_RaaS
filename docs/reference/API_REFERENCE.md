@@ -1,18 +1,21 @@
 # QRES v20.0.1 API Reference
 
 ## Core Traits (`qres_core`)
-The primary interface is defined in the `cortex` module.
+The primary interface is defined in the `cortex` module (Aggregation Engine).
 
-### `trait SwarmNeuron`
-The "Brain" of a node.
+### `trait SwarmNeuron` (Mesh Node Protocol)
+The core behavior interface for mesh nodes.
 * `fn predict(&self, history: &[u8]) -> u8`: Deterministic prediction hot-path.
-* `fn adapt(&mut self, signals: &[SpikeEvent])`: Neuroplasticity update.
-* `fn export_gene(&self) -> Vec<u8>`: Serializes the current strategy.
+* `fn adapt(&mut self, signals: &[SpikeEvent])`: Adaptive update based on peer signals.
+* `fn export_gene(&self) -> Vec<u8>`: Serializes the current model bytecode.
 
-### `trait GeneStorage`
-The "Hippocampus" (Persistence Layer).
-* `fn save_gene(&mut self, id: u32, gene: &[u8]) -> bool`: Persist strategy to flash/disk.
-* `fn load_gene(&self, id: u32) -> Option<Vec<u8>>`: Recover strategy on reboot.
+### `trait ModelPersistence` (Persistent Storage Layer)
+Interface for model bytecode persistence. Replaces deprecated `GeneStorage` (v20.2.0).
+* `fn save_gene(&mut self, id: u32, gene: &[u8]) -> bool`: Persist model bytecode to flash/disk.
+* `fn load_gene(&self, id: u32) -> Option<Vec<u8>>`: Recover model bytecode on reboot.
+
+> **Terminology Note (v20.2.0):** `GeneStorage` is deprecated in favor of `ModelPersistence`.
+> See [TECHNICAL_DEBT.md](../status/TECHNICAL_DEBT.md) for migration timeline.
 
 ---
 

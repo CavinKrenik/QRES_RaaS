@@ -125,6 +125,6 @@ Before merging any phase:
 ## Contact
 
 Questions about invariant compliance? See:
-- Full invariant definitions: [`docs/security/INVARIANTS.md`](security/INVARIANTS.md)
-- Roadmap: [`docs/COGNITIVE_MESH_ROADMAP.md`](COGNITIVE_MESH_ROADMAP.md)
-- Energy budget analysis: [`docs/power/`](power/)
+- Full invariant definitions: [`docs/security/INVARIANTS.md`](INVARIANTS.md)
+- Roadmap: [`docs/roadmap/COGNITIVE_MESH_ROADMAP.md`](../roadmap/COGNITIVE_MESH_ROADMAP.md)
+- Energy budget analysis: [`docs/power/`](../power/)

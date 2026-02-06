@@ -206,6 +206,106 @@ cargo test --package qres_core --test multimodal_verification --features std
 
 ---
 
+## v21.0.0 Breaking Change Checklist
+
+**Target Release:** Q3 2026
+**Prerequisite:** Rust 1.86+ (trait alias stabilization)
+
+This section tracks breaking changes scheduled for the v21.0.0 major release. All items have deprecation notices in v20.2.0.
+
+### 1. Delete GeneStorage Trait
+
+**Status:** Ready for removal
+**Blocker:** Trait alias feature stabilization (Rust 1.86)
+**Current Location:** `crates/qres_core/src/cortex/storage.rs`
+
+**Action:**
+```rust
+// v20.0.1 (current)
+#[deprecated(since = "20.2.0", note = "Use ModelPersistence")]
+pub trait GeneStorage { ... }
+pub trait ModelPersistence: GeneStorage {}
+impl<T: GeneStorage> ModelPersistence for T {}
+
+// v21.0.0 (target)
+pub trait ModelPersistence {
+    fn save_model(&mut self, id: u32, bytecode: &[u8]) -> bool;
+    fn load_model(&self, id: u32) -> Option<Vec<u8>>;
+}
+```
+
+**Migration Impact:**
+- External implementations must rename `impl GeneStorage` → `impl ModelPersistence`
+- Method renames: `save_gene()` → `save_model()`, `load_gene()` → `load_model()`
+- Serialization format unchanged (binary compatible)
+
+---
+
+### 2. Rename SignedEpiphany → SignedModelUpdate
+
+**Status:** Requires dual serialization support
+**Blocker:** Gossip packet backward compatibility
+**Current Location:** `crates/qres_daemon/src/swarm_p2p.rs`
+
+**Action:**
+```rust
+// v20.2.0 (transition)
+#[deprecated(since = "20.2.0", note = "Use SignedModelUpdate")]
+pub type SignedEpiphany = SignedModelUpdate;
+
+// v21.0.0 (target)
+pub struct SignedModelUpdate {
+    pub model_id: u32,
+    pub delta: Vec<u8>,
+    pub signature: [u8; 64],
+    pub sender_id: PeerId,
+}
+```
+
+**Migration Impact:**
+- **CRITICAL:** Serialized gossip packets must support both names during v20.2.0
+- Data migration tool required for persistent state
+- REST API `/epiphany` endpoint renamed to `/model-update`
+
+---
+
+### 3. Remove f32 Reputation Shims
+
+**Status:** Deferred from v20.0.1
+**Blocker:** PeerId-based ReputationTracker integration
+**Current Location:** `crates/qres_core/src/reputation.rs`, `multimodal.rs`
+
+**Action:**
+```rust
+// v20.0.1 (current) - f32 parameter for compatibility
+pub fn influence_weight_fixed(&self, reputation: f32) -> i32 { ... }
+
+// v21.0.0 (target) - PeerId-based lookup
+pub fn influence_weight(&self, peer: &PeerId) -> i32 {
+    let reputation = self.get_reputation(peer);
+    // ... compute weight from tracked reputation
+}
+```
+
+**Migration Impact:**
+- All callsites must provide `PeerId` instead of f32 reputation
+- Enables automatic reputation lookup from persistent tracker
+- Removes "God parameter" anti-pattern where callers control their own reputation
+
+---
+
+### Pre-Release Checklist
+
+- [ ] Rust 1.86+ confirmed stable (trait alias)
+- [ ] Dual serialization tested for SignedEpiphany ↔ SignedModelUpdate
+- [ ] Data migration tool implemented and documented
+- [ ] All deprecation warnings resolved in CI
+- [ ] Python bindings updated (PyO3 wrappers)
+- [ ] REST API migration guide published
+- [ ] CHANGELOG.md updated with migration examples
+
+---
+
 ## Maintenance Guidelines
 
 ### Adding New Technical Debt Items
@@ -237,12 +337,13 @@ cargo test --package qres_core --test multimodal_verification --features std
 | Date | Auditor | Findings | Resolution |
 |------|---------|----------|------------|
 | 2026-02-05 | Technical Review | 35+ biological metaphors, MockRadio simulation-only, bandwidth claim variance | Added deprecation tracking, updated README accuracy, documented hardware validation timeline |
+| 2026-02-05 | QRES v20.0.1 Harmonization | GeneStorage trait bridge needed, documentation terminology outdated | Implemented `ModelPersistence` subtrait bridge with `#[deprecated]` attribute, updated API_REFERENCE.md and cortex module docs. All 212 tests passing (156 unit + 56 integration). Software invariants verified: INV-6 (Q16.16 wrapping arithmetic), CLASS_C_DEFENSE (3% stochastic sampling), TAAF (12/12 tests), TWTScheduler (4h/10m/30s regime intervals). no_std compliance maintained. |
 
 ---
 
 ## See Also
 
-- [CHANGELOG.md](../CHANGELOG.md) - Version history and breaking changes
-- [CONTRIBUTING.md](./CONTRIBUTING.md) - Development guidelines
-- [COGNITIVE_MESH_SAFETY.md](./COGNITIVE_MESH_SAFETY.md) - Safety invariants
-- [MULTIMODAL_VERIFICATION_REPORT.md](./MULTIMODAL_VERIFICATION_REPORT.md) - TAAF implementation status
+- [CHANGELOG.md](../../CHANGELOG.md) - Version history and breaking changes
+- [CONTRIBUTING.md](../guides/CONTRIBUTING.md) - Development guidelines
+- [COGNITIVE_MESH_SAFETY.md](../security/COGNITIVE_MESH_SAFETY.md) - Safety invariants
+- [MULTIMODAL_VERIFICATION_REPORT.md](../verification/MULTIMODAL_VERIFICATION_REPORT.md) - TAAF implementation status

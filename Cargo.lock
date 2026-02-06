@@ -639,7 +639,7 @@ checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
 
 [[package]]
 name = "benchmarks"
-version = "20.0.0"
+version = "21.0.0"
 dependencies = [
  "anyhow",
  "csv",
@@ -5965,7 +5965,7 @@ dependencies = [
 
 [[package]]
 name = "qres_core"
-version = "20.0.1"
+version = "21.0.0"
 dependencies = [
  "anyhow",
  "blake3",
@@ -5996,7 +5996,7 @@ dependencies = [
 
 [[package]]
 name = "qres_daemon"
-version = "20.0.0"
+version = "21.0.0"
 dependencies = [
  "axum",
  "chrono",
@@ -6033,7 +6033,7 @@ dependencies = [
 
 [[package]]
 name = "qres_wasm"
-version = "20.0.0"
+version = "21.0.0"
 dependencies = [
  "console_error_panic_hook",
  "js-sys",
@@ -7117,7 +7117,7 @@ checksum = "0193cc4331cfd2f3d2011ef287590868599a2f33c3e69bc22c1a3d3acf9e02fb"
 
 [[package]]
 name = "swarm_sim"
-version = "20.0.0"
+version = "21.0.0"
 dependencies = [
  "bevy",
  "qres_core",

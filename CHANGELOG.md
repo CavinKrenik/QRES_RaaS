@@ -1,6 +1,28 @@
 QRES Changelog: Resource-Aware Agentic Swarm (RaaS)
 All notable changes to the QRES reference implementation are documented here.
 
+[v21.0.0] - 2026-02-05 "Documentation Restructure"
+Added
+- INV-7 (Anti-Stalling/Liveness): Mesh must achieve consensus within T_max=150 rounds under 20% straggler conditions.
+- docs/INDEX.md: Navigation guide for reorganized documentation structure.
+- v21.0.0 Breaking Change Checklist in TECHNICAL_DEBT.md for planned API migrations.
+
+Changed
+- Documentation Reorganization: Moved 20 loose docs/*.md files into semantic subdirectories (reference/, status/, verification/, security/, benchmarks/, roadmap/, guides/, research/).
+- Terminology: Completed ModelPersistence migration path; GeneStorage now deprecated with #[deprecated] attribute.
+- Archive: Created docs/archive/v20_historical/ for superseded documentation.
+- Merged reproducibility/ into evaluation/reproducibility/.
+
+Deprecated
+- GeneStorage trait: Use ModelPersistence instead (full removal in v22.0.0).
+- SignedEpiphany: Will be renamed to SignedModelUpdate in v22.0.0.
+
+[v20.0.1] - 2026-02-04 "Adaptive Defense"
+Added
+- Adaptive Aggregation: Dynamic switching between trimmed-mean and reputation-only modes (13.8% overhead reduction).
+- Regime Hysteresis: Asymmetric confirmation thresholds (96.9% false-positive reduction).
+- Stochastic Auditing: Class C collusion detection (100% detection, 0% FP, 2% overhead).
+
 [v20.0.0] - 2026-02-04 "Cognitive Mesh"
 Added
 Multimodal TAAF: Temporal Attention-Guided Adaptive Fusion with event-driven sparse spiking (0.0351 RMSE, 3.6% gain over v19).

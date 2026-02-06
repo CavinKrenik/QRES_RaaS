@@ -36,11 +36,11 @@ Comparing **QRES (UDP/Gossip)** against **Federated Averaging (TCP/Centralized)*
 
 ### The "Bandwidth Gap"
 
-The core innovation is transmitting "Evolved Genes" (Bytecode) instead of "Gradient Vectors" (Floats).
+The core innovation is transmitting Model Bytecode instead of Gradient Vectors (Floats).
 
 | Metric | FedAvg (Baseline) | QRES (Swarm) | Improvement |
 | :--- | :--- | :--- | :--- |
-| **Payload Size** | 2.4 MB (Model) | 1.6 KB (Gene) | **1500x Smaller** |
+| **Payload Size** | 2.4 MB (Model) | 1.6 KB (Model Bytecode) | **1500x Smaller** |
 | **Daily Bandwidth** | 480 MB | **8 KB** | **Orders of Magnitude** |
 | **Convergence** | 14.5 Hours | **1.2 Hours** | **12x Faster Wall-Clock** |
 
@@ -52,7 +52,7 @@ At 15% packet loss, TCP-based Federated Learning suffers from Head-of-Line block
 | :--- | :--- | :--- | :--- |
 | 0% (ideal) | 100% | 100% | Both succeed when pipes are clean |
 | 5% (Wi-Fi) | 85% | 100% | TCP HoL blocking penalizes FedAvg |
-| 15% (mesh) | 12% (timeouts) | 98% | UDP gene gossip shrugs off drops |
+| 15% (mesh) | 12% (timeouts) | 98% | UDP model bytecode gossip handles drops |
 
 ### Conclusion
 

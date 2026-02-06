@@ -1,6 +1,6 @@
 # QRES &mdash; RaaS: Resource-Aware Decentralized Node Mesh
 
-[![v20.0.1](https://img.shields.io/badge/version-20.0.1-blue.svg)](https://github.com/CavinKrenik/QRES_RaaS/releases)
+[![v21.0.0](https://img.shields.io/badge/version-21.0.0-blue.svg)](https://github.com/CavinKrenik/QRES_RaaS/releases)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18193905-blue)](https://doi.org/10.5281/zenodo.18193905)
 [![Paper](https://img.shields.io/badge/Paper-RaaS%3A%20Resource--Aware%20Agentic%20Swarm-green.svg)](https://doi.org/10.5281/zenodo.18474976)
 [![no_std](https://img.shields.io/badge/no_std-compatible-green.svg)](https://docs.rust-embedded.org/book/intro/no-std.html)
@@ -16,7 +16,7 @@ RaaS (Resource-Aware Agentic Swarm) is a `no_std` Rust implementation of determi
 **v20.0.1 "Adaptive Defense"** adds three Byzantine resistance enhancements: (1) **Adaptive Aggregation** eliminates 13.8% overhead by switching between trimmed-mean and reputation-only modes based on swarm maturity; (2) **Regime Hysteresis** reduces false-positive regime transitions by 96.9% through asymmetric confirmation thresholds; (3) **Stochastic Auditing** achieves 100% Class C collusion detection with 0% false positives and 2% bandwidth overhead. Detection timing: mean 82.3 rounds (first=31, last=174), verified across 10 cartel scenarios with 390 honest nodes. See [CLASS_C_DEFENSE.md](./docs/security/CLASS_C_DEFENSE.md) for full protocol specification.
 
 **Architectural Scope:**
-Read **[SCOPE.md](./docs/SCOPE.md)** before deployment or evaluation. QRES is intentionally narrow.
+Read **[SCOPE.md](./docs/reference/SCOPE.md)** before deployment or evaluation. QRES is intentionally narrow.
 
 ---
 
@@ -225,22 +225,22 @@ cargo run -p swarm_sim --release
 
 | Category | Files |
 |----------|-------|
-| **Specification** | [SPEC.md](docs/SPEC.md), [API_REFERENCE.md](docs/API_REFERENCE.md) |
+| **Specification** | [SPEC.md](docs/reference/SPEC.md), [API_REFERENCE.md](docs/reference/API_REFERENCE.md) |
 | **Theory** | Archived in [RaaS_Extras/docs/theory/](../RaaS_Extras/docs/theory/) |
 | **Power Management** | [TWT_INTEGRATION.md](docs/power/TWT_INTEGRATION.md) |
 | **Implementation** | [P2P_IMPLEMENTATION.md](docs/guides/P2P_IMPLEMENTATION.md), [SECURITY_GUIDE.md](docs/guides/SECURITY_IMPLEMENTATION_GUIDE.md) |
-| **Benchmarks** | [BENCHMARKS.md](docs/BENCHMARKS.md), [CLOUD_RESULTS.md](docs/CLOUD_BENCHMARK_RESULTS.md) |
-| **Adaptive Tuning** | [META_TUNING.md](docs/adaptive/META_TUNING.md), [SENSITIVITY_ANALYSIS.md](docs/SENSITIVITY_ANALYSIS.md) |
+| **Benchmarks** | [BENCHMARKS.md](docs/benchmarks/BENCHMARKS.md), [CLOUD_RESULTS.md](docs/benchmarks/CLOUD_BENCHMARK_RESULTS.md) |
+| **Adaptive Tuning** | [META_TUNING.md](docs/adaptive/META_TUNING.md), [SENSITIVITY_ANALYSIS.md](docs/research/SENSITIVITY_ANALYSIS.md) |
 | **Formal Verification** | [FORMAL_SPEC.md](docs/verification/FORMAL_SPEC.md) (TLA+ regime transition, Q2 2026 model checking) |
 | **Interoperability** | [semantic.rs](crates/qres_core/src/semantic.rs) (HSTP envelopes, JSON-LD, W3C DID, RDF provenance) |
-| **Process** | [CONTRIBUTING.md](docs/CONTRIBUTING.md), [SCOPE.md](docs/SCOPE.md), [SECURITY_ROADMAP.md](docs/SECURITY_ROADMAP.md) |
+| **Process** | [CONTRIBUTING.md](docs/guides/CONTRIBUTING.md), [SCOPE.md](docs/reference/SCOPE.md), [SECURITY_ROADMAP.md](docs/security/SECURITY_ROADMAP.md) |
 | **RaaS Thesis** | [RAAS_MANIFEST.md](RAAS_MANIFEST.md) |
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for development workflow, code style, and architecture decision records.
+See [CONTRIBUTING.md](docs/guides/CONTRIBUTING.md) for development workflow, code style, and architecture decision records.
 
 ---
 

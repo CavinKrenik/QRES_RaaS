@@ -29,7 +29,7 @@
 - Straggler scenario: 30% nodes artificially delayed 2–10× (low-power ESP32 model)
 - Success metric: ≥40% faster swarm-wide convergence vs v19 batching
 - New test: "viral spread must not cause brownouts" (INV-5)
-- **Verified:** Peak 47 infected nodes, 37.2% speedup in `multimodal_gauntlet_v20.py`
+- **Verified:** Peak 47 propagation-active nodes, 37.2% speedup in `multimodal_gauntlet_v20.py`
 
 ---
 
@@ -44,7 +44,7 @@
   - Uses Q16.16 fixed-point (no I16F16 dependency), wrapping arithmetic
   - "Surprise" (prediction error norm, scaled by 1M) from one modality becomes an additive bias to another
   - Counter-based LR scaling (no floating-point EMA) for modality imbalance detection
-- **Implementation:** 9/9 unit tests passing, 100% `no_std` compliant
+- **Implementation:** 12/12 unit tests passing, 100% `no_std` compliant
 - **Verification:** See `docs/MULTIMODAL_VERIFICATION_REPORT.md`
 
 ### Simulation Testing ✅
@@ -76,7 +76,7 @@
 
 ### Resilience Testing ✅
 
-- **Lamarckian resumption:** simulate total power failure → all nodes "die" → restore from virtual non-volatile `GeneStorage` → 100% of learned weights recovered (INV-6)
+- **Lamarckian resumption:** simulate total power failure → all nodes "die" → restore from virtual non-volatile `ModelPersistence` storage → 100% of learned weights recovered (INV-6)
 - **Adversarial campaign:** coordinated slander across one zone + bridge failure → verify median `PeerEval` + bucketed reputation contains damage (INV-2, INV-3)
 - **Verified:** 100% Lamarckian recovery (error < 0.05 post-blackout), 20 Storm rounds during attacks
 

@@ -155,11 +155,19 @@ fn test_lag_to_adaptation_measurement() {
 
         if ticks_to_prestorm == 0 && detector.current_regime() == Regime::PreStorm {
             ticks_to_prestorm = tick + 1;
-            println!("  PreStorm detected at tick {} with entropy {:.2}", tick + 1, entropy);
+            println!(
+                "  PreStorm detected at tick {} with entropy {:.2}",
+                tick + 1,
+                entropy
+            );
         }
         if ticks_to_storm == 0 && detector.current_regime() == Regime::Storm {
             ticks_to_storm = tick + 1;
-            println!("  Storm detected at tick {} with entropy {:.2}", tick + 1, entropy);
+            println!(
+                "  Storm detected at tick {} with entropy {:.2}",
+                tick + 1,
+                entropy
+            );
         }
     }
 

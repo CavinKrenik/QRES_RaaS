@@ -1,6 +1,6 @@
 # P2P Swarm Implementation Guide
 
-This document details the architecture and implementation of the QRES P2P Swarm (v8.0+), enabling distributed learning ("Hive Mind") and model synchronization.
+This document details the architecture and implementation of the QRES P2P Swarm (v8.0+), enabling distributed learning (Mesh Network) and model synchronization.
 
 ## Overview
 The QRES Swarm uses `libp2p` to create a decentralized network where nodes share:
@@ -27,26 +27,26 @@ Located in `crates/qres_daemon/src/swarm.rs`.
 | `qres/v1/state` | State synchronization | `State { timestamp, fidelity, tensor_blob }` |
 | `qres/v1/heartbeat` | Node status updates | `Heartbeat { uptime, version }` |
 
-### 3. Hive Mind (Continual Learning)
+### 3. Mesh Network (Continual Learning)
 Implemented in `ai/hive_mind.py`.
 *   **FedProx:** Federated Averaging with Proximal term to handle non-IID data stability.
 *   **Cycle:**
     1.  **Local Train:** Node evolves SNN/Tensor predictor locally on new data.
-    2.  **Epiphany:** Weights extract -> Quantize -> Broadcast on `qres/v1/epiphany`.
+    2.  **Model Update:** Weights extract -> Quantize -> Broadcast on `qres/v1/epiphany`.
     3.  **Assimilate:** Receiver averages parameter vectors: $W_{new} = \frac{1}{N} \sum W_i$.
     4.  **Evolve:** Local model updated with community knowledge.
 
 ## 3. Usage
 
 ### Starting a Swarm Node (qres-daemon)
-To start a background node that listens for model updates and contributes to the Hive Mind:
+To start a background node that listens for model updates and contributes to the Mesh Network:
 
 ```bash
 qres-daemon --mode node --port 4001
 ```
 
 ### Broadcasting to the Swarm
-To archive data and broadcast the weight "epiphany" to the network:
+To archive data and broadcast the model update to the network:
 
 ```bash
 qres pack --input ./data --out archive.qrar --swarm

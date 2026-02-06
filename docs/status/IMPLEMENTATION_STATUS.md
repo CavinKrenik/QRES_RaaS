@@ -6,7 +6,7 @@ This document clarifies what's production-ready vs. experimental vs. roadmap.
 - [x] **Adaptive Aggregation:** Dynamic switching between trimmed-mean (cold-start) and reputation-only (mature) modes (13.8% overhead reduction).
 - [x] **Regime Hysteresis:** Asymmetric confirmation thresholds prevent false-positive transitions (96.9% improvement).
 - [x] **Stochastic Auditing:** Class C collusion detection via probabilistic gradient verification (100% detection, 0% FP, 2% overhead).
-- [x] **Full Test Coverage:** 155/155 tests passing (142 unit + 13 integration), zero clippy warnings.
+- [x] **Full Test Coverage:** 212 tests passing (156 unit + 56 integration), zero clippy warnings.
 
 ## v20.0.0 (Cognitive Mesh) - COMPLETED
 - [x] **Multimodal TAAF:** Cross-modal temporal attention fusion with event-driven sparse spiking (0.0351 RMSE).
@@ -17,7 +17,7 @@ This document clarifies what's production-ready vs. experimental vs. roadmap.
 ## v19.0.0 (The Immune System Era) - COMPLETED
 - [x] **The Immune System:** Byzantine-resilient aggregation (`TrimmedMean`).
 - [x] **Precision Upgrade:** High-dynamic range gradients (`Bfp16Vec`).
-- [x] **The Hippocampus:** `GeneStorage` trait and Disk persistence implementation.
+- [x] **Persistent Storage Layer:** `ModelPersistence` trait (formerly GeneStorage) and disk persistence implementation.
 - [x] **Emergence:** Verified "Viral Cure" propagation in 15% packet loss scenarios.
 
 ## ✅ Fully Implemented & Tested
@@ -80,4 +80,4 @@ This document clarifies what's production-ready vs. experimental vs. roadmap.
 | v11.x | Portable SIMD | ARM/x86/WASM portability |
 | v10.x | Singularity Engine | Q16.16 determinism, architecture decoupling |
 | v9.0 | SNN Era | GIF neurons, OSBC pruning |
-| v8.x | Hive Mind | P2P swarm, federated learning |
+| v8.x | Mesh Network | P2P swarm, federated learning |

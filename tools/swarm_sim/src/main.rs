@@ -1,3 +1,6 @@
+// Legacy visualization tool - uses deprecated GeneStorage for backward compatibility
+#![allow(deprecated)]
+
 use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::prelude::*;

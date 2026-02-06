@@ -11,7 +11,7 @@
 - **Location:** [crates/qres_core/src/packet.rs](crates/qres_core/src/packet.rs)
 - **Fields Added:** `residual_error`, `accuracy_delta`
 - **Tests:** [evaluation/analysis/phase1_viral_straggler.py](evaluation/analysis/phase1_viral_straggler.py)
-- **Metrics:** 47 infected nodes peak, 37.2% speedup verified
+- **Metrics:** 47 propagation-active nodes peak, 37.2% speedup verified
 
 ### Phase 2: Multimodal Temporal Attention ✅
 - **Location:** [crates/qres_core/src/multimodal.rs](crates/qres_core/src/multimodal.rs)  
@@ -52,7 +52,7 @@
 - Sybil (33% attackers, rounds 40-60): High error injection (0.25)
 - Collusion (25% cartel, rounds 70-90): Erratic behavior (0.15)
 - Blackout (round 100): Total power loss + Non-Volatile State Persistence (NVRAM) recovery
-- Viral propagation: Peak 47 infected nodes (47% of network)
+- Accelerated propagation: Peak 47 propagation-active nodes (47% of network)
 
 **Output:**
 ```

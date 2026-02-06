@@ -120,6 +120,35 @@ Non-deterministic nodes produce different consensus states on different platform
 
 ---
 
+## Liveness Invariant
+
+### INV-7: Anti-Stalling / Bounded Convergence
+
+**Formal Statement:**
+The mesh must achieve consensus within `T_max = 150` rounds even under 20% straggler conditions. Formally:
+```
+∀ round r: if stragglers(r) ≤ 0.20 * |active_set|
+           then consensus_reached(r + 150) = true
+```
+Failure to reach consensus within `T_max` triggers an automatic fallback to the last verified stable bytecode stored in the Persistent Storage Layer.
+
+**How to Test:**
+1. Configure 100-node mesh with 20% intentional stragglers (delayed responses)
+2. Inject consensus challenge at round 0
+3. Measure rounds until consensus: must be ≤ 150
+4. Inject 25% stragglers (above threshold): verify fallback triggers
+5. After fallback: verify all nodes resume from Persistent Storage Layer snapshot
+
+**What Breaks if Violated:**
+The mesh can stall indefinitely if slow or malicious nodes prevent convergence. Without a bounded liveness guarantee, an attacker with minority control can create a denial-of-service by perpetually delaying consensus without triggering reputation penalties.
+
+**Implementation Notes:**
+- Timeout watchdog in `RegimeDetector` tracks rounds since last consensus
+- Fallback uses `ModelPersistence::load_gene()` to restore last stable state
+- Straggler detection via heartbeat timeout (3× expected round duration)
+
+---
+
 ## Testing Matrix
 
 | Invariant | Unit Test | Integration Test | Simulation |
@@ -130,3 +159,4 @@ Non-deterministic nodes produce different consensus states on different platform
 | INV-4 | `test_regime_gate_untrusted` | Regime sim | Energy attack sim |
 | INV-5 | N/A | Energy sim | Intermittent Solar + noise |
 | INV-6 | `test_zk_audit_compliance` | Cross-platform | Heterogeneous VM test |
+| INV-7 | `test_straggler_convergence` | Straggler injection | 20% straggler sim |

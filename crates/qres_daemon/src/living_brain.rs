@@ -45,7 +45,7 @@ pub struct SignedEpiphany {
 }
 
 /// Type alias for forward compatibility with v21.0 terminology migration.
-/// 
+///
 /// In v21.0.0, this struct will be renamed to `SignedModelUpdate` to use
 /// systems engineering terminology instead of biological metaphors.
 /// External integrations should begin migrating to the new name.

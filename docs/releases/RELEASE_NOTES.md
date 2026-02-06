@@ -1,8 +1,56 @@
 # QRES Release Notes: RaaS (Resource-Aware Agentic Swarm)
 
-**Current Version:** 20.0.1
+**Current Version:** 21.0.0
 **Project Lead:** Cavin Krenik
 **Core Implementation:** `qres_core` (no_std / I16F16)
+
+---
+
+## v21.0.0: "Documentation Restructure"
+
+**Release Date:** February 5, 2026
+**Status:** Codebase Reorganized. Production-Ready.
+
+### Highlights
+
+v21.0.0 focuses on codebase organization, documentation restructuring, and preparing the API surface for future breaking changes. This release introduces INV-7 (liveness invariant), reorganizes documentation into semantic subdirectories, and establishes the deprecation path for v22.0.0.
+
+#### 1. Documentation Reorganization
+- **Semantic Subdirectories:** 20 loose `docs/*.md` files organized into `reference/`, `status/`, `verification/`, `security/`, `benchmarks/`, `roadmap/`, `guides/`, and `research/`.
+- **Navigation Index:** New `docs/INDEX.md` provides quick navigation to all documentation categories.
+- **Archive System:** `docs/archive/v20_historical/` preserves superseded documentation with clear provenance.
+- **Merged Reproducibility:** Root `reproducibility/` moved to `evaluation/reproducibility/` for consolidated benchmarking artifacts.
+
+#### 2. INV-7: Anti-Stalling / Liveness Invariant
+- **Bounded Convergence:** Mesh must achieve consensus within T_max=150 rounds under 20% straggler conditions.
+- **Automatic Fallback:** Failure to reach consensus triggers restoration from Persistent Storage Layer.
+- **Straggler Detection:** 3× expected round duration heartbeat timeout.
+- **Testing:** `test_straggler_convergence` unit test and 20% straggler simulation.
+
+#### 3. API Deprecation Path (v22.0.0 Preview)
+- **GeneStorage → ModelPersistence:** Trait now deprecated with `#[deprecated]` attribute; subtrait bridge in place.
+- **SignedEpiphany → SignedModelUpdate:** Type alias ready; dual serialization planned for v21.x.
+- **f32 Reputation Shims:** PeerId-based lookup migration documented in TECHNICAL_DEBT.md.
+
+### Verified Performance
+
+| Metric | Result |
+|--------|--------|
+| Test Suite | 225/225 passing |
+| Code Quality | Zero clippy warnings (except intentional deprecations) |
+| Documentation Links | 100% verified after reorganization |
+| Security Invariants | 7/7 documented (INV-1 through INV-7) |
+
+### Breaking Changes
+
+**None.** v21.0.0 is fully backward-compatible with v20.0.1. All API deprecations are warnings only.
+
+### Migration Path (v20.0.1 → v21.0.0)
+
+1. Update Cargo.toml to `qres_core` v21.0.0.
+2. Update documentation links if referencing docs/*.md directly (now in subdirectories).
+3. Begin migrating `impl GeneStorage` to `impl ModelPersistence` (optional, warnings only).
+4. No code changes required for runtime compatibility.
 
 ---
 
@@ -123,10 +171,10 @@ v20.0 introduces the **Cognitive Mesh**: cross-modal temporal attention fusion w
 - **Priority Scheduling:** High-quality updates propagate first within the allowed gossip budget.
 
 #### 5. HSTP Semantic Middleware
-- **JSON-LD Envelopes:** `SemanticEnvelope` wraps 48–74 byte genes with IEEE 7007-2021–compatible metadata.
+- **JSON-LD Envelopes:** `SemanticEnvelope` wraps 48–74 byte model bytecode with IEEE 7007-2021–compatible metadata.
 - **W3C DID:** `did:qres:<ed25519-hex>` decentralized identifiers derived from existing peer keys.
-- **RDF Provenance:** Subject–predicate–object triples for gene lineage (modality, fitness, regime, epoch).
-- **HSTP Discovery:** `HstpDescriptor` for broker registration of available gene formats.
+- **RDF Provenance:** Subject–predicate–object triples for model bytecode lineage (modality, fitness, regime, epoch).
+- **HSTP Discovery:** `HstpDescriptor` for broker registration of available model bytecode formats.
 - **Zero Overhead:** Intra-swarm gossip strips envelopes; only cross-swarm/HSTP-bridged traffic includes them.
 
 #### 6. Influence-Cap Hardening
@@ -184,7 +232,7 @@ The "Adversarial Hardening" phase. This release introduced protection against "I
 
 - **Robust Aggregation:** Replaced Krum with Coordinate-wise Trimmed Mean. This prevents coordinated Byzantine nodes from "steering" the swarm through subtle, inlier bias attacks.
 - **BFP-16 (Block Floating Point):** Solved the vanishing gradient problem. By using a shared exponent for weight blocks, QRES maintains f32 dynamic range while keeping i16 storage density.
-- **Summary Genes:** Introduced 74-byte onboarding packets, allowing new nodes to join the swarm with >99% bandwidth reduction compared to full history replay.
+- **Summary Packets:** Introduced 74-byte onboarding packets, allowing new nodes to join the swarm with >99% bandwidth reduction compared to full history replay.
 
 ---
 
@@ -195,7 +243,7 @@ The "Adversarial Hardening" phase. This release introduced protection against "I
 ### Highlights
 The pivotal shift from a compression utility to a Decentralized Neural Swarm.
 
-- **Lamarckian Persistence:** Introduced GeneStorage. Learned strategies now survive power cycles, allowing "instant-on" intelligence for energy-harvesting hardware.
+- **Lamarckian Persistence:** Introduced ModelPersistence (Persistent Storage Layer). Learned strategies now survive power cycles, allowing "instant-on" intelligence for energy-harvesting hardware.
 - **Deterministic Core:** Replaced all floating-point paths with Q16.16 Fixed-Point math. This guarantees bit-perfect consensus across heterogeneous hardware (ARM, x86, RISC-V).
 - **Swarm Simulator:** Launched the Bevy-based 3D simulation engine for visualizing emergent self-healing behavior in real-time.
 

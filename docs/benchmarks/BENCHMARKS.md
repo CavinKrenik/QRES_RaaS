@@ -267,7 +267,7 @@ By achieving **~0.19 ratio** on high-volume log data (vs standard ~0.40), QRES e
 
 | Dimension | QRES v18 | Flower/TFF (FL) | ZSTD (Compression) | TFLite Micro (Edge AI) |
 |:---|:---|:---|:---|:---|
-| **Bandwidth per Day** | **~8 KB** (Genes) | ~10 MB (Weights) | N/A | N/A |
+| **Bandwidth per Day** | **~8 KB** (Model Bytecode) | ~10 MB (Weights) | N/A | N/A |
 | **Consensus Guarantee** | **Bit-Perfect** (Q16.16) | None (Float drift) | N/A | N/A |
 | **Byzantine Tolerance** | **Krum (f<45%)** | None | None | None |
 | **Edge Runtime** | **`no_std` Rust** | Python/C++ | C | C++ (TensorFlow) |
