@@ -1,14 +1,14 @@
 # QRES &mdash; RaaS: Resource-Aware Decentralized Node Mesh
 
 [![PyPI version](https://badge.fury.io/py/qres-raas.svg)](https://badge.fury.io/py/qres-raas)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/qres-raas)](https://pypi.org/project/qres-raas/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qres-raas)](https://pypi.org/project/qres-raas/)
+[![CI](https://github.com/CavinKrenik/QRES_RaaS/actions/workflows/ci.yml/badge.svg)](https://github.com/CavinKrenik/QRES_RaaS/actions/workflows/ci.yml)
 [![v21.0.0](https://img.shields.io/badge/version-21.0.0-blue.svg)](https://github.com/CavinKrenik/QRES_RaaS/releases)
+
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18193905-blue)](https://doi.org/10.5281/zenodo.18193905)
 [![Paper](https://img.shields.io/badge/Paper-RaaS%3A%20Resource--Aware%20Agentic%20Swarm-green.svg)](https://doi.org/10.5281/zenodo.18474976)
-[![CI](https://github.com/CavinKrenik/QRES_RaaS/workflows/ci/badge.svg)](https://github.com/CavinKrenik/QRES_RaaS/actions)
-[![Coverage](https://codecov.io/gh/CavinKrenik/QRES_RaaS/branch/main/graph/badge.svg)](https://codecov.io/gh/CavinKrenik/QRES_RaaS)
 [![Docs](https://img.shields.io/badge/docs-reference-blue)](docs/INDEX.md)
+
 [![no_std](https://img.shields.io/badge/no_std-compatible-green.svg)](https://docs.rust-embedded.org/book/intro/no-std.html)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
 [![Rust 2021](https://img.shields.io/badge/rust-2021-orange.svg)](https://www.rust-lang.org/)
