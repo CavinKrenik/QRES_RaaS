@@ -7,10 +7,10 @@
 
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18193905-blue)](https://doi.org/10.5281/zenodo.18193905)
 [![Paper](https://img.shields.io/badge/Paper-RaaS%3A%20Resource--Aware%20Agentic%20Swarm-green.svg)](https://doi.org/10.5281/zenodo.18474976)
-[![Docs](https://img.shields.io/badge/docs-reference-blue)](docs/INDEX.md)
+[![Docs](https://img.shields.io/badge/docs-reference-blue)](https://github.com/CavinKrenik/QRES_RaaS/blob/main/docs/INDEX.md)
 
 [![no_std](https://img.shields.io/badge/no_std-compatible-green.svg)](https://docs.rust-embedded.org/book/intro/no-std.html)
-[![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
+[![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](https://github.com/CavinKrenik/QRES_RaaS/blob/main/LICENSE-MIT)
 [![Rust 2021](https://img.shields.io/badge/rust-2021-orange.svg)](https://www.rust-lang.org/)
 
 > **A decentralized, BFT-secure operating system for embedded sensor meshes achieving 4.98x-31.8x bandwidth compression via fixed-point model gossip.**
@@ -61,7 +61,7 @@ Get up and running with QRES in under 5 minutes.
 - Cargo (included with Rust)
 
 **Optional (for Python bindings):**
-- Python 3.8+ 
+- Python 3.8+
 - pip and maturin (`pip install maturin`)
 
 **Platform Support:** Linux, macOS, Windows (x86_64/ARM64), WASM, ESP32-C6 (no_std)
@@ -77,7 +77,7 @@ fn main() {
     let data = b"Hello, QRES! Deterministic compression via model gossip.";
     let compressed = compress(data).expect("compression failed");
     let decompressed = decompress(&compressed).expect("decompression failed");
-    
+
     assert_eq!(data.as_slice(), decompressed.as_slice());
     println!("✓ Compression ratio: {:.2}x", data.len() as f32 / compressed.len() as f32);
 }
@@ -134,31 +134,31 @@ cargo run --release
 graph TD
     A[Client Applications] -->|API Calls| B[QRES Daemon]
     B -->|Compress/Decompress| C[qres_core Runtime]
-    
+
     C --> D[Adaptive Compression]
     C --> E[Byzantine Consensus]
     C --> F[Energy Management]
-    
+
     D -->|Model Bytecode| G[P2P Swarm Layer]
     E -->|Aggregation| G
     F -->|TWT Scheduling| G
-    
+
     G --> H[Viral Gossip Protocol]
     G --> I[Reputation System]
     G --> J[ZK Proof Verification]
-    
+
     H -->|libp2p| K[Peer Network]
     I -->|Adaptive Exponent| K
     J -->|Stochastic Audit| K
-    
+
     K -->|Consensus Updates| C
-    
+
     style C fill:#e1f5ff,stroke:#0066cc,stroke-width:3px
     style G fill:#fff4e1,stroke:#ff9900,stroke-width:2px
     style K fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
 ```
 
-**Data Flow:** 
+**Data Flow:**
 1. Client submits data → 2. Daemon compresses using local model → 3. Core runtime applies fixed-point predictor (Q16.16) → 4. Residual gossiped via P2P → 5. Byzantine-tolerant aggregation updates model → 6. Reputation-weighted consensus converges → 7. New model distributed via viral protocol
 
 **Key Properties:**
