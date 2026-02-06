@@ -27,10 +27,11 @@ impl GpuEngine {
                 .ok()?;
 
             // Shader for dot-product mixing (WGSL)
-            let shader: wgpu::ShaderModule = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: Some("Mixer Shader"),
-                source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(
-                    r#"
+            let shader: wgpu::ShaderModule =
+                device.create_shader_module(wgpu::ShaderModuleDescriptor {
+                    label: Some("Mixer Shader"),
+                    source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(
+                        r#"
                     @group(0) @binding(0) var<storage, read> weights: array<f32>;
                     @group(0) @binding(1) var<storage, read> preds: array<f32>;
                     @group(0) @binding(2) var<storage, read_write> output: array<f32>;
@@ -43,8 +44,8 @@ impl GpuEngine {
                         output[idx] = weights[idx] * preds[idx];
                     }
                 "#,
-                )),
-            });
+                    )),
+                });
 
             let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
                 label: Some("Mixer Pipeline"),

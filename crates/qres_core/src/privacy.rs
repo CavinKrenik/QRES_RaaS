@@ -108,7 +108,9 @@ impl DifferentialPrivacy {
                 .map_err(|e: opendp::error::Error| e.to_string())?;
 
             // Invoke measurement
-            let noisy = meas.invoke(&data_f64).map_err(|e: opendp::error::Error| e.to_string())?;
+            let noisy = meas
+                .invoke(&data_f64)
+                .map_err(|e: opendp::error::Error| e.to_string())?;
 
             // Copy back to update vector
             if noisy.len() != update.len() {
