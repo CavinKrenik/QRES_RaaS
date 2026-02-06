@@ -95,7 +95,7 @@ jobs:
         run: |
           cd bindings/python
           maturin build --release
-          pip install --force-reinstall target/wheels/*.whl
+          pip install --force-reinstall ../../target/wheels/*.whl
       
       - name: Generate Python coverage
         run: |
