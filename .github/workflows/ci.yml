@@ -7,6 +7,10 @@ on:
     branches: [main, develop]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
@@ -25,23 +29,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
-      
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.4
-        continue-on-error: true
-        id: sccache
-      
-      - name: Configure sccache
-        if: steps.sccache.outcome == 'success'
-        run: |
-          # Only set RUSTC_WRAPPER if sccache is actually available
-          if command -v sccache &> /dev/null; then
-            echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-            echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
-            echo "✓ sccache configured"
-          else
-            echo "⚠ sccache not available, continuing without cache"
-          fi
       
       - name: Check rustfmt
         run: cargo fmt --all -- --check
@@ -82,24 +69,6 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
-      
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.4
-        continue-on-error: true
-        id: sccache
-      
-      - name: Configure sccache
-        if: steps.sccache.outcome == 'success'
-        run: |
-          # Only set RUSTC_WRAPPER if sccache is actually available
-          if command -v sccache &> /dev/null; then
-            echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-            echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
-            echo "✓ sccache configured"
-          else
-            echo "⚠ sccache not available, continuing without cache"
-          fi
-        shell: bash
       
       - name: Build qres_core (no_std)
         run: cargo build -p qres_core --no-default-features --release

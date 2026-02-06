@@ -12,6 +12,10 @@ on:
         type: boolean
         default: true
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
   PACKAGE_NAME: qres-raas
@@ -39,24 +43,6 @@ jobs:
       
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-      
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.4
-        continue-on-error: true
-        id: sccache
-      
-      - name: Configure sccache
-        if: steps.sccache.outcome == 'success'
-        run: |
-          # Only set RUSTC_WRAPPER if sccache is actually available
-          if command -v sccache &> /dev/null; then
-            echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-            echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
-            echo "✓ sccache configured"
-          else
-            echo "⚠ sccache not available, continuing without cache"
-          fi
-        shell: bash
       
       - name: Install maturin
         run: pip install maturin
