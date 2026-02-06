@@ -398,7 +398,7 @@ Dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your 
 | Paper | DOI | PDF |
 |-------|-----|-----|
 | **Deterministic Rematerialization: Convergent Evolution in Cloud Kernels and Edge Swarms** | [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18305656-blue)](https://doi.org/10.5281/zenodo.18305656) | — |
-| **RaaS: Resource-Aware Agentic Swarm** | [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18474976-blue)](https://doi.org/10.5281/zenodo.18474976) | [📄 Zenodo](https://zenodo.org/records/18474976/files/Main.pdf) \| [Local](docs/RaaS_Paper/Main.pdf) |
+| **RaaS: Resource-Aware Agentic Swarm** | [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18474976-blue)](https://doi.org/10.5281/zenodo.18474976) | [Zenodo](https://zenodo.org/records/18474976/files/Main.pdf) \| [Local](docs/RaaS_Paper/Main.pdf) |
 
 ## Reproducibility & Data
 
