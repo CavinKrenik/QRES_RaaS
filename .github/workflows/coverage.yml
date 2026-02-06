@@ -94,7 +94,8 @@ jobs:
       - name: Build Python bindings
         run: |
           cd bindings/python
-          maturin develop --release --extras ci
+          maturin build --release
+          pip install --force-reinstall target/wheels/*.whl
       
       - name: Generate Python coverage
         run: |
