@@ -19,17 +19,17 @@ jobs:
     name: Rust Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
-      
+
       - name: Install cargo-tarpaulin
         run: cargo install cargo-tarpaulin --locked
-      
+
       - name: Generate Rust coverage
         run: |
           cargo tarpaulin \
@@ -41,7 +41,7 @@ jobs:
             --exclude-files 'crates/qres_wasm/*' 'target/*' \
             -- --test-threads=1
         continue-on-error: true
-      
+
       - name: Upload Rust coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -50,7 +50,7 @@ jobs:
           name: rust-coverage
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-      
+
       - name: Coverage summary
         run: |
           if [ -f ./coverage/cobertura.xml ]; then
@@ -61,7 +61,7 @@ jobs:
               if [ "$COVERAGE" != "N/A" ]; then
                 COVERAGE_PCT=$(echo "$COVERAGE * 100" | bc -l | xargs printf "%.1f")
                 echo "📊 Rust Coverage: ${COVERAGE_PCT}%"
-                
+
                 # Warn if below threshold
                 if (( $(echo "$COVERAGE < 0.75" | bc -l) )); then
                   echo "⚠️ Warning: Coverage below 75% threshold"
@@ -76,31 +76,31 @@ jobs:
     name: Python Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-      
+
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: 'pip'
-      
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install maturin pytest pytest-cov numpy scipy networkx
-      
+
       - name: Build Python bindings
         run: |
           cd bindings/python
           maturin build --release
           pip install --force-reinstall ../../target/wheels/*.whl
-      
+
       - name: Generate Python coverage
         run: |
           pytest tests/ \
@@ -110,7 +110,7 @@ jobs:
             -v \
             || true
         continue-on-error: true
-      
+
       - name: Upload Python coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -119,7 +119,7 @@ jobs:
           name: python-coverage
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-      
+
       - name: Check coverage threshold
         run: |
           if [ -f ./coverage/python-coverage.xml ]; then
@@ -129,7 +129,7 @@ jobs:
               COVERAGE=$(xmllint --xpath 'string(//coverage/@line-rate)' ./coverage/python-coverage.xml 2>/dev/null || echo "0")
               COVERAGE_PCT=$(echo "$COVERAGE * 100" | bc -l | xargs printf "%.1f" 2>/dev/null || echo "0.0")
               echo "📊 Python Coverage: ${COVERAGE_PCT}%"
-              
+
               # Threshold check (75%)
               if (( $(echo "$COVERAGE < 0.75" | bc -l 2>/dev/null || echo "1") )); then
                 echo "⚠️ Warning: Coverage below 75% threshold"
@@ -146,7 +146,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [rust-coverage, python-coverage]
     if: always()
-    
+
     steps:
       - name: Summary
         run: |
@@ -156,7 +156,7 @@ jobs:
           echo "- Python Coverage: ${{ needs.python-coverage.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "View detailed reports on [Codecov](https://codecov.io/gh/${{ github.repository }})" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ needs.rust-coverage.result }}" == "success" ] && [ "${{ needs.python-coverage.result }}" == "success" ]; then
             echo "✓ All coverage jobs completed"
           else

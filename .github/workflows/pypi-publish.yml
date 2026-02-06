@@ -25,33 +25,33 @@ jobs:
     name: Build Wheels (${{ matrix.os }}, Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
-    
+
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-      
+
       - name: Install maturin
         run: pip install maturin
-      
+
       - name: Build wheel
         run: |
           cd bindings/python
           maturin build --release --strip --interpreter python${{ matrix.python-version }}
-      
+
       - name: Upload wheel
         uses: actions/upload-artifact@v4
         with:
@@ -63,27 +63,27 @@ jobs:
     name: Build Source Distribution
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-      
+
       - name: Install maturin
         run: pip install maturin
-      
+
       - name: Build sdist
         run: |
           cd bindings/python
           maturin sdist
-      
+
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
@@ -96,32 +96,32 @@ jobs:
     needs: [build-wheels]
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout code (for tests)
         uses: actions/checkout@v4
-      
+
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      
+
       - name: Download wheel artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: wheel-ubuntu-latest-py3.11
           path: wheels/
           merge-multiple: true
-      
+
       - name: Install wheel
         run: |
           pip install wheels/*.whl
-      
+
       - name: Test import
         run: |
           python -c "import qres; print('✓ QRES imported successfully')"
           python -c "from qres import QRES_API; api = QRES_API(mode='hybrid'); print('✓ QRES_API initialized')"
-      
+
       - name: Run basic tests (if available)
         run: |
           if [ -d tests ]; then
@@ -136,24 +136,24 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.test_pypi == 'true' || github.ref == 'refs/heads/develop' }}
     timeout-minutes: 10
-    
+
     environment:
       name: testpypi
       url: https://test.pypi.org/p/qres-raas
-    
+
     permissions:
       id-token: write  # Required for OIDC trusted publishing
-    
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist/
           merge-multiple: true
-      
+
       - name: List artifacts
         run: ls -R dist/
-      
+
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -168,24 +168,24 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.test_pypi != 'true' && startsWith(github.ref, 'refs/tags/v') }}
     timeout-minutes: 10
-    
+
     environment:
       name: pypi
       url: https://pypi.org/p/qres-raas
-    
+
     permissions:
       id-token: write  # Required for OIDC trusted publishing
-    
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist/
           merge-multiple: true
-      
+
       - name: List artifacts
         run: ls -R dist/
-      
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -198,24 +198,24 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     timeout-minutes: 10
-    
+
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: release-artifacts/
           merge-multiple: true
-      
+
       - name: Extract version from tag
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-      
+
       - name: Create release notes
         run: |
           echo "# QRES v${{ steps.version.outputs.VERSION }}" > release-notes.md
@@ -231,7 +231,7 @@ jobs:
           echo "" >> release-notes.md
           # Extract relevant section from CHANGELOG.md
           sed -n "/\[v${{ steps.version.outputs.VERSION }}\]/,/\[v/p" CHANGELOG.md | sed '$ d' >> release-notes.md || echo "See CHANGELOG.md" >> release-notes.md
-      
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -248,7 +248,7 @@ jobs:
     needs: [build-wheels, build-sdist, test-wheels]
     runs-on: ubuntu-latest
     if: always()
-    
+
     steps:
       - name: Generate summary
         run: |
@@ -258,7 +258,7 @@ jobs:
           echo "- Build Sdist: ${{ needs.build-sdist.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- Test Wheels: ${{ needs.test-wheels.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ needs.build-wheels.result }}" == "success" ] && [ "${{ needs.build-sdist.result }}" == "success" ] && [ "${{ needs.test-wheels.result }}" == "success" ]; then
             echo "✓ All jobs completed successfully" >> $GITHUB_STEP_SUMMARY
           else
