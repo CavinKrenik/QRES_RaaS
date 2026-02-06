@@ -16,8 +16,7 @@ fn encode_bytes(
     // Allocate a conservative buffer (input size + header/neural weights margin)
     let overhead = 4096 + weights.map_or(0, |w| w.len());
     let capacity = data.len().saturating_add(overhead);
-    let mut buffer = Vec::with_capacity(capacity);
-    buffer.resize(capacity, 0);
+    let mut buffer = vec![0; capacity];
 
     let compressed_len = compress_chunk(data, predictor_id, weights, None, &mut buffer)
         .map_err(|e| PyErr::new::<PyIOError, _>(e.to_string()))?;

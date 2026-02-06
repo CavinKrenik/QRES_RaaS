@@ -4,6 +4,7 @@ use wgpu::util::DeviceExt;
 
 /// GPU Compute Engine for Neural Mixing
 /// Handles massive matrix multiplications for the ensemble on the GPU.
+#[allow(dead_code)]
 pub struct GpuEngine {
     #[cfg(feature = "gpu")]
     device: wgpu::Device,
