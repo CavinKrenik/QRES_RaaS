@@ -36,11 +36,11 @@ fn sqrt(x: f64) -> f64 {
 fn ln(x: f64) -> f64 {
     x.ln()
 }
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", not(feature = "dp")))]
 fn cos(x: f64) -> f64 {
     x.cos()
 }
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", not(feature = "dp")))]
 fn sin(x: f64) -> f64 {
     x.sin()
 }
@@ -95,10 +95,10 @@ impl DifferentialPrivacy {
         {
             // OpenDP Implementation
             // Convert f32 vec to f64 for OpenDP
-            let mut data_f64: Vec<f64> = update.iter().map(|&x| x as f64).collect();
+            let data_f64: Vec<f64> = update.iter().map(|&x| x as f64).collect();
 
             let domain = VectorDomain::new(AtomDomain::<f64>::default());
-            let metric = L2Distance::default();
+            let metric = L2Distance::<f64>::default();
 
             // Sensitivity is the clipping threshold (L2 sensitivity)
             let sensitivity = self.clipping_threshold;
