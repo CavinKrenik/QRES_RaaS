@@ -162,7 +162,7 @@ pub fn decompress_residuals(data: &[u8], original_len: usize) -> Vec<u8> {
 }
 
 /// Compresses BFP-16 vector components (exponent + mantissas)
-/// Format: [exponent: i8][mantissas: 16-bit BE...]
+/// Format: `[exponent: i8][mantissas: 16-bit BE...]`
 pub fn compress_bfp(exponent: i8, mantissas: &[i16]) -> Vec<u8> {
     let mut buffer = Vec::with_capacity(1 + mantissas.len() * 2);
     // 1. Shared Exponent

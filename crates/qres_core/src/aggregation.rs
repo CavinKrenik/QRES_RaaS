@@ -456,7 +456,7 @@ pub struct AggregationResult {
 /// Aggregate multiple model updates using the specified mode
 ///
 /// # Arguments
-/// * `updates` - Vector of model weight updates (each is a flattened Vec<f32>)
+/// * `updates` - Vector of model weight updates (each is a flattened `Vec<f32>`)
 /// * `mode` - The aggregation algorithm to use
 ///
 /// # Returns

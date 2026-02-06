@@ -127,7 +127,7 @@ pub trait SwarmNeuron: Clone {
     /// - Used to clone a successful neuron's strategy
     ///
     /// # Returns
-    /// A Vec<u8> containing the serialized state
+    /// A `Vec<u8>` containing the serialized state
     fn export_gene(&self) -> alloc::vec::Vec<u8>;
 
     /// 5. INSTALL GENETICS: Restore internal state from a received gene

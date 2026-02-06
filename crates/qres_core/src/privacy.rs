@@ -97,7 +97,7 @@ impl DifferentialPrivacy {
             // Convert f32 vec to f64 for OpenDP
             let data_f64: Vec<f64> = update.iter().map(|&x| x as f64).collect();
 
-            let domain = VectorDomain::new(AtomDomain::<f64>::default());
+            let domain = VectorDomain::new(AtomDomain::<f64>::new_non_nan());
             let metric = L2Distance::<f64>::default();
 
             // Sensitivity is the clipping threshold (L2 sensitivity)
@@ -108,8 +108,7 @@ impl DifferentialPrivacy {
             let c = 2.0 * ln(1.25 / self.delta);
             let scale = sensitivity * sqrt(c) / self.epsilon;
 
-            // Create measurement: make_gaussian(domain, metric, scale, k)
-            // k = None means continuous noise (default)
+            // Create discrete Gaussian measurement (k = None uses finest f64 granularity)
             let meas = make_gaussian(domain, metric, scale, None)
                 .map_err(|e: opendp::error::Error| e.to_string())?;
 

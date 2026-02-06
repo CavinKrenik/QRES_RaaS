@@ -73,7 +73,7 @@ impl Bfp16Vec {
         }
     }
 
-    /// Convert back to Vec<f32>
+    /// Convert back to `Vec<f32>`
     pub fn to_vec_f32(&self) -> Vec<f32> {
         let scale = 2.0f32.powi(self.exponent as i32);
         self.mantissas.iter().map(|&m| m as f32 * scale).collect()

@@ -180,7 +180,7 @@ impl CollisionAuditor {
     /// Expected rounds to detection ≈ I / P(detect)
     ///
     /// For k=3, I=50, N=150, n=5:
-    /// P(detect) ≈ 0.095 → E[rounds] ≈ 526 rounds
+    /// P(detect) ≈ 0.095 → E\[rounds\] ≈ 526 rounds
     pub fn expected_detection_rounds(&self, n_active: usize, cartel_size: usize) -> f32 {
         if cartel_size == 0 || n_active == 0 || cartel_size > n_active {
             return f32::INFINITY;

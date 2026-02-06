@@ -209,7 +209,7 @@ impl BottleneckAutoencoder {
     }
 }
 
-/// Affine transformation: output[i] = sum(w[i][j] * x[j]) + b[i]
+/// Affine transformation: `output[i] = sum(w[i][j] * x[j]) + b[i]`
 fn affine(w: &[Vec<f32>], b: &[f32], x: &[f32]) -> Vec<f32> {
     w.iter()
         .zip(b.iter())

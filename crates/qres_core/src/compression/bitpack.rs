@@ -29,8 +29,8 @@ pub const BLOCK_SIZE: usize = 256;
 /// and efficiently storing the residuals (Bit-Packing).
 ///
 /// Returns a byte vector format:
-/// [Bit-Packed Blocks]
-/// Each block: [Bit-Width (1 byte)] [Packed Data]
+/// `[Bit-Packed Blocks]`
+/// Each block: `[Bit-Width (1 byte)] [Packed Data]`
 pub fn compress_golden(data: &[f32]) -> Vec<u8> {
     if data.is_empty() {
         return Vec::new();

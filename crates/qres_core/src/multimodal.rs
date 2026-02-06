@@ -5,7 +5,7 @@
 //!
 //! **Architecture:**
 //! - Fixed-Point Only: All calculations use i32 Q16.16 format (FIXED_SCALE = 1<<16)
-//! - Gradient Representation: Bfp16Vec { exponent: i8, mantissas: Vec<i16> }
+//! - Gradient Representation: Bfp16Vec { exponent: i8, mantissas: `Vec<i16>` }
 //! - Single-Pass Attention: Exponential decay weights via wrapping arithmetic
 //! - No Allocations in Hot Path: Ring buffers with manual indexing
 //!
@@ -92,7 +92,7 @@ pub struct MultimodalFusion {
     num_modalities: usize,
 
     /// Temporal history for each modality (ring buffer, no VecDeque)
-    /// Shape: [modality_idx][timestep] -> Bfp16Vec
+    /// Shape: `[modality_idx][timestep]` -> Bfp16Vec
     history: Vec<Vec<Bfp16Vec>>,
 
     /// Current cursor position in ring buffer
@@ -107,7 +107,7 @@ pub struct MultimodalFusion {
     lr_scales: Vec<i32>,
 
     /// Attention weights (learned, per-modality pair, Q16.16)
-    /// attention_weights[source][target] = how much source modality influences target
+    /// `attention_weights[source][target]` = how much source modality influences target
     attention_weights: Vec<Vec<i32>>,
 
     /// Imbalance counters: tracks when modality i has 2x lower error than modality j

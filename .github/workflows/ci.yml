@@ -84,14 +84,24 @@ jobs:
       - name: Build qres_core (no_std)
         run: cargo build -p qres_core --no-default-features --release
 
-      - name: Build all workspace members
+      - name: Build all workspace members (Linux, all features incl. Python)
+        if: runner.os == 'Linux'
         run: cargo build --workspace --all-features --release
+
+      - name: Build all workspace members (macOS/Windows, skip Python & legacy swarm_sim)
+        if: runner.os != 'Linux'
+        run: cargo build --workspace --exclude swarm_sim --features std --release
 
       - name: Run tests (qres_core with std)
         run: cargo test -p qres_core --features std --release
 
-      - name: Run tests (full workspace)
+      - name: Run tests (full workspace, Linux)
+        if: runner.os == 'Linux'
         run: cargo test --workspace --all-features --release -- --test-threads=1
+
+      - name: Run tests (full workspace, macOS/Windows)
+        if: runner.os != 'Linux'
+        run: cargo test --workspace --exclude swarm_sim --features std --release -- --test-threads=1
 
       - name: Run power module tests
         run: cargo test -p qres_core --features std --release -- "power::"
@@ -99,8 +109,13 @@ jobs:
       - name: Run verification tests
         run: cargo test -p qres_core --features std --release -- verify
 
-      - name: Run benchmarks (compile only)
+      - name: Run benchmarks (compile only, Linux)
+        if: runner.os == 'Linux'
         run: cargo bench --workspace --all-features --no-run
+
+      - name: Run benchmarks (compile only, macOS/Windows)
+        if: runner.os != 'Linux'
+        run: cargo bench --workspace --exclude swarm_sim --features std --no-run
 
   test-python:
     name: Test Python Bindings (${{ matrix.python-version }})

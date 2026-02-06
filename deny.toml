@@ -1,0 +1,31 @@
+# cargo-deny configuration
+# https://embarkstudios.github.io/cargo-deny/
+
+[advisories]
+# The advisory database git repo URL
+db-urls = ["https://github.com/rustsec/advisory-db"]
+
+# Advisories to ignore because they come from transitive dependencies
+# that we cannot upgrade without major version bumps of parent crates.
+ignore = [
+    # instant (0.1.13) - unmaintained, used by libp2p internals.
+    # Waiting on libp2p to migrate to web-time.
+    "RUSTSEC-2024-0384",
+
+    # paste (1.0.15) - unmaintained, used by bevy/tract/netlink internals.
+    # Upstream crates need to migrate to pastey.
+    "RUSTSEC-2024-0436",
+
+    # ring (0.16.20) - unmaintained, used by libp2p-tls 0.3.0.
+    # libp2p-tls pins ring 0.16.x; waiting on libp2p upgrade.
+    "RUSTSEC-2025-0010",
+
+    # ring (0.16.20) - AES overflow panic vulnerability.
+    # Only affects QUIC HeaderProtectionKey and 64GB+ single-chunk AES ops.
+    # Our usage through libp2p-tls is not affected by these code paths.
+    "RUSTSEC-2025-0009",
+
+    # rustls-pemfile (1.0.4) - unmaintained, used by reqwest 0.11.x.
+    # Waiting on reqwest upgrade to 0.12+ which drops this dependency.
+    "RUSTSEC-2025-0134",
+]
