@@ -27,6 +27,7 @@ results.txt
 # QRES Output & Test Data
 *.qres
 swarms_memory/
+tensor_outbox/
 *.bin
 *.safetensors
 

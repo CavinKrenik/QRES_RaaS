@@ -24,4 +24,4 @@ zstd = "0.13"
 anyhow = "1.0"
 thiserror = "1.0"
 tract-onnx = "0.21.10"
-qres_core = { path = "./crates/qres_core" }
+qres_core = { path = "./crates/qres_core", version = "21.0.0" }

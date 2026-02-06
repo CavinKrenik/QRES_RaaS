@@ -2,6 +2,9 @@
 name = "qres_daemon"
 version = "21.0.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "P2P edge daemon with libp2p gossipsub and REST API for QRES node management"
+repository = "https://github.com/CavinKrenik/QRES_RaaS"
 
 [dependencies]
 qres_core = { workspace = true, features = ["cli", "std"] }

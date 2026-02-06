@@ -4,6 +4,8 @@ version = "21.0.0"
 edition = "2021"
 rust-version = "1.83"
 license = "MIT OR Apache-2.0"
+description = "Deterministic no_std runtime for quantum-resilient swarm consensus with fixed-point arithmetic, Byzantine aggregation, and ZK proofs"
+repository = "https://github.com/CavinKrenik/QRES_RaaS"
 
 [features]
 # default = ["std"]

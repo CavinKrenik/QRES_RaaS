@@ -2,6 +2,9 @@
 name = "qres_sim"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Simulation and evaluation engine for QRES swarm dynamics and regime testing"
+repository = "https://github.com/CavinKrenik/QRES_RaaS"
 
 [dependencies]
 qres_core = { workspace = true, features = ["std"] }

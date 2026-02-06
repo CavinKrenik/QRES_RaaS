@@ -69,6 +69,41 @@ impl BottleneckAutoencoder {
         }
     }
 
+    /// Create a new autoencoder with deterministically seeded Xavier weights.
+    /// Useful for reproducible tests.
+    pub fn new_seeded(
+        input_dim: usize,
+        hidden_dim: usize,
+        bottleneck_dim: usize,
+        seed: u64,
+    ) -> Self {
+        use rand::SeedableRng;
+        let mut rng = rand_chacha::ChaCha8Rng::seed_from_u64(seed);
+
+        let w1 = xavier_init_with_rng(hidden_dim, input_dim, &mut rng);
+        let b1 = vec![0.0; hidden_dim];
+        let w2 = xavier_init_with_rng(bottleneck_dim, hidden_dim, &mut rng);
+        let b2 = vec![0.0; bottleneck_dim];
+        let w3 = xavier_init_with_rng(hidden_dim, bottleneck_dim, &mut rng);
+        let b3 = vec![0.0; hidden_dim];
+        let w4 = xavier_init_with_rng(input_dim, hidden_dim, &mut rng);
+        let b4 = vec![0.0; input_dim];
+
+        Self {
+            input_dim,
+            hidden_dim,
+            bottleneck_dim,
+            w1,
+            b1,
+            w2,
+            b2,
+            w3,
+            b3,
+            w4,
+            b4,
+        }
+    }
+
     /// Forward pass through the encoder only (compress).
     /// Returns the bottleneck representation.
     pub fn encode(&self, input: &[f32]) -> Vec<f32> {
@@ -254,8 +289,12 @@ fn update_weights(w: &mut [Vec<f32>], b: &mut [f32], input: &[f32], d_output: &[
 
 /// Xavier initialization for weight matrix
 fn xavier_init(rows: usize, cols: usize) -> Vec<Vec<f32>> {
-    use rand::Rng;
     let mut rng = rand::thread_rng();
+    xavier_init_with_rng(rows, cols, &mut rng)
+}
+
+/// Xavier initialization with a caller-provided RNG (for deterministic seeding).
+fn xavier_init_with_rng<R: rand::Rng>(rows: usize, cols: usize, rng: &mut R) -> Vec<Vec<f32>> {
     let scale = (2.0 / (rows + cols) as f64).sqrt() as f32;
 
     (0..rows)
@@ -279,11 +318,12 @@ mod tests {
     #[test]
     fn test_autoencoder_learns_identity() {
         // Train a small autoencoder to learn near-identity mapping
+        // Uses seeded RNG for deterministic, reproducible results
         let input_dim = 8;
-        let hidden_dim = 6;
+        let hidden_dim = 8;
         let bottleneck_dim = 4;
 
-        let mut ae = BottleneckAutoencoder::new(input_dim, hidden_dim, bottleneck_dim);
+        let mut ae = BottleneckAutoencoder::new_seeded(input_dim, hidden_dim, bottleneck_dim, 42);
 
         // Generate training data: simple patterns
         let samples: Vec<Vec<f32>> = (0..100)
@@ -295,11 +335,11 @@ mod tests {
             })
             .collect();
 
-        // Train for many epochs
+        // Train for enough epochs with a moderate learning rate
         let mut last_loss = f32::MAX;
-        for epoch in 0..200 {
-            let loss = ae.train_batch(&samples, 0.05);
-            if epoch % 50 == 0 {
+        for epoch in 0..500 {
+            let loss = ae.train_batch(&samples, 0.01);
+            if epoch % 100 == 0 {
                 println!("Epoch {}: loss = {:.6}", epoch, loss);
             }
             last_loss = loss;

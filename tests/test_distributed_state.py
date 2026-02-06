@@ -23,19 +23,19 @@ class TestDistributedWorldState(unittest.TestCase):
     
     def setUp(self):
         # Clean up test directories
-        for path in ["quantum_outbox", "quantum_inbox_test", "test_db1.db", "test_db2.db"]:
+        for path in ["tensor_outbox", "quantum_inbox_test", "test_db1.db", "test_db2.db"]:
             if os.path.exists(path):
                 if os.path.isdir(path):
                     shutil.rmtree(path)
                 else:
                     os.remove(path)
         
-        os.makedirs("quantum_outbox", exist_ok=True)
+        os.makedirs("tensor_outbox", exist_ok=True)
         os.makedirs("quantum_inbox_test", exist_ok=True)
     
     def tearDown(self):
         # Clean up
-        for path in ["quantum_outbox", "quantum_inbox_test", "test_db1.db", "test_db2.db"]:
+        for path in ["tensor_outbox", "quantum_inbox_test", "test_db1.db", "test_db2.db"]:
             if os.path.exists(path):
                 if os.path.isdir(path):
                     shutil.rmtree(path)
@@ -63,12 +63,12 @@ class TestDistributedWorldState(unittest.TestCase):
         self.assertTrue(success)
         
         # Verify file created in outbox
-        files = os.listdir("quantum_outbox")
+        files = os.listdir("tensor_outbox")
         world_files = [f for f in files if f.startswith("world_") and f.endswith(".qws")]
         self.assertEqual(len(world_files), 1)
         
         # Verify file content
-        with open(f"quantum_outbox/{world_files[0]}", "rb") as f:
+        with open(f"tensor_outbox/{world_files[0]}", "rb") as f:
             data = f.read()
         
         self.assertTrue(data.startswith(b"QRES_WORLD_STATE"))
@@ -87,9 +87,9 @@ class TestDistributedWorldState(unittest.TestCase):
         api1.broadcast_world_state("node1_state")
         
         # Move broadcast to inbox (simulating network transfer)
-        files = os.listdir("quantum_outbox")
+        files = os.listdir("tensor_outbox")
         world_file = [f for f in files if f.endswith(".qws")][0]
-        shutil.move(f"quantum_outbox/{world_file}", f"quantum_inbox_test/{world_file}")
+        shutil.move(f"tensor_outbox/{world_file}", f"quantum_inbox_test/{world_file}")
         
         # Node 2: Create local state
         api2 = QRES_API(mode="quantum", enable_persistence=True)
@@ -150,10 +150,10 @@ class TestDistributedWorldState(unittest.TestCase):
         api2 = QRES_API(mode="quantum", enable_persistence=True)
         api2.world_state.db_path = "test_db2.db"
         
-        files = os.listdir("quantum_outbox")
+        files = os.listdir("tensor_outbox")
         world_file = [f for f in files if f.endswith(".qws")][0]
         
-        with open(f"quantum_outbox/{world_file}", "rb") as f:
+        with open(f"tensor_outbox/{world_file}", "rb") as f:
             data = f.read()
         
         import pickle
