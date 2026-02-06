@@ -31,28 +31,28 @@ Currently operates in **simulation mode** using `MockRadio` for testing without 
 ┌─────────────────────────────────────────────────────────┐
 │  Application Layer (QRES)                               │
 │  ┌─────────────────┐    ┌──────────────────────────┐    │
-│  │ RegimeDetector   │───►│ TWTScheduler              │    │
-│  │ Calm/PreStorm/   │    │ - Interval selection      │    │
-│  │ Storm            │    │ - Sleep/wake decisions     │    │
-│  └─────────────────┘    │ - Gossip batching          │    │
-│                          └──────────┬───────────────┘    │
-├──────────────────────────────────────┼──────────────────┤
-│  MAC Layer (802.11ax TWT)            │                   │
-│  ┌──────────────────────────────────┐│                   │
-│  │ TWT Agreement Negotiation       ││                   │
-│  │ - Service Period (SP)           ││                   │
-│  │ - Wake Interval                 ◄┘                   │
+│  │ RegimeDetector  │───►│ TWTScheduler             │    │
+│  │ Calm/PreStorm/  │    │ - Interval selection     │    │
+│  │ Storm           │    │ - Sleep/wake decisions   │    │
+│  └─────────────────┘    │ - Gossip batching        │    │
+│                         └──────────┬───────────────┘    │
+├────────────────────────────────────┼────────────────────┤
+│  MAC Layer (802.11ax TWT)          │                    │
+│  ┌────────────────────────────────┐│                    │
+│  │ TWT Agreement Negotiation      ││                    │
+│  │ - Service Period (SP)          ││                    │
+│  │ - Wake Interval                ◄┘                    │
 │  │ - TWT Flow Identifier           │                    │
-│  └──────────────────────────────────┘                    │
-├──────────────────────────────────────────────────────────┤
-│  Physical Layer                                          │
-│  ┌──────────────────────────────────┐                    │
-│  │ Radio Power States:              │                    │
+│  └─────────────────────────────────┘                    │
+├─────────────────────────────────────────────────────────┤
+│  Physical Layer                                         │
+│  ┌─────────────────────────────────┐                    │
+│  │ Radio Power States:             │                    │
 │  │ - Active TX: ~220 mW            │                    │
 │  │ - Idle/Listen: ~80 mW           │                    │
 │  │ - TWT Sleep: ~5 mW              │                    │
-│  └──────────────────────────────────┘                    │
-└──────────────────────────────────────────────────────────┘
+│  └─────────────────────────────────┘                    │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ---
