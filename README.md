@@ -11,9 +11,13 @@
 
 RaaS (Resource-Aware Agentic Swarm) is a `no_std` Rust implementation of deterministic decentralized learning using Q16.16 fixed-point consensus. The reference implementation (QRES) achieves 4.98x-31.8x compression vs federated learning (dataset-dependent: SmoothSine 31.8x, Wafer 4.98x, ECG5000 4.98x), translating to ~99% reduction (8 KB/day vs 2.3 GB/day typical FL baseline) while tolerating 30% Byzantine attackers through coordinate-wise trimmed-mean aggregation and reputation-weighted consensus.
 
-**v20.0 "Distributed Prediction Engine"** introduces cross-modal temporal attention fusion (TAAF) with event-driven sparse spiking, achieving a **3.6% error improvement over v19** (0.0351 RMSE floor, max drift 0.0005). The Adaptive Exponent (Rule 4) scales reputation weighting by swarm size: 2.0 for small (<20 nodes), 3.0 for medium, 3.5 for large (>50 nodes). Influence is capped at `rep^3 * 0.8` to mitigate Slander-Amplification. Non-Volatile State Persistence verified at 4% error delta across 8 brownout/recovery cycles with zero catastrophic knowledge loss.
+**v21 Key Features:**
+- **TAAF Multimodal Fusion:** Cross-modal temporal attention with event-driven sparse spiking (3.6% error improvement, 0.0351 RMSE)
+- **Adaptive Byzantine Defense:** Dynamic aggregation modes, regime hysteresis (96.9% fewer false transitions), [stochastic auditing](./docs/security/CLASS_C_DEFENSE.md) (100% Class C detection)
+- **7 Security Invariants:** INV-1 through INV-7 including liveness guarantee (consensus within 150 rounds under 20% stragglers)
+- **Reputation Scaling:** Swarm-size adaptive exponents (2.0/3.0/3.5) with `rep³ × 0.8` influence cap
 
-**v20.0.1 "Adaptive Defense"** adds three Byzantine resistance enhancements: (1) **Adaptive Aggregation** eliminates 13.8% overhead by switching between trimmed-mean and reputation-only modes based on swarm maturity; (2) **Regime Hysteresis** reduces false-positive regime transitions by 96.9% through asymmetric confirmation thresholds; (3) **Stochastic Auditing** achieves 100% Class C collusion detection with 0% false positives and 2% bandwidth overhead. Detection timing: mean 82.3 rounds (first=31, last=174), verified across 10 cartel scenarios with 390 honest nodes. See [CLASS_C_DEFENSE.md](./docs/security/CLASS_C_DEFENSE.md) for full protocol specification.
+See [CHANGELOG.md](./CHANGELOG.md) for full version history or [docs/INDEX.md](./docs/INDEX.md) for documentation.
 
 **Architectural Scope:**
 Read **[SCOPE.md](./docs/reference/SCOPE.md)** before deployment or evaluation. QRES is intentionally narrow.
