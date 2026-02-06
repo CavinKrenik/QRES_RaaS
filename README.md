@@ -1,5 +1,8 @@
 # QRES &mdash; RaaS: Resource-Aware Decentralized Node Mesh
 
+[![PyPI version](https://badge.fury.io/py/qres-raas.svg)](https://badge.fury.io/py/qres-raas)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/qres-raas)](https://pypi.org/project/qres-raas/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/qres-raas)](https://pypi.org/project/qres-raas/)
 [![v21.0.0](https://img.shields.io/badge/version-21.0.0-blue.svg)](https://github.com/CavinKrenik/QRES_RaaS/releases)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18193905-blue)](https://doi.org/10.5281/zenodo.18193905)
 [![Paper](https://img.shields.io/badge/Paper-RaaS%3A%20Resource--Aware%20Agentic%20Swarm-green.svg)](https://doi.org/10.5281/zenodo.18474976)
@@ -24,6 +27,23 @@ See [CHANGELOG.md](./CHANGELOG.md) for full version history or [docs/INDEX.md](.
 
 **Architectural Scope:**
 Read **[SCOPE.md](./docs/reference/SCOPE.md)** before deployment or evaluation. QRES is intentionally narrow.
+
+---
+
+## Installation
+
+```bash
+pip install qres-raas
+```
+
+**From source:**
+
+```bash
+git clone https://github.com/CavinKrenik/QRES_RaaS.git
+cd QRES_RaaS/bindings/python
+pip install maturin
+maturin develop --release
+```
 
 ---
 
