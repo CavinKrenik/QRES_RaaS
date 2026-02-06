@@ -43,7 +43,7 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-      
+
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
@@ -81,7 +81,7 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-      
+
       - name: Install Linux dependencies
         run: |
           sudo apt-get update

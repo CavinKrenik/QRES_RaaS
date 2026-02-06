@@ -29,7 +29,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
-      
+
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -74,7 +74,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
-      
+
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
@@ -118,7 +118,7 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-      
+
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -205,7 +205,7 @@ jobs:
         continue-on-error: true
 
   minimum-rust-version:
-    name: Check MSRV (Minimum Rust 1.78)
+    name: Check MSRV (Minimum Rust 1.83)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -213,12 +213,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Rust 1.78
+      - name: Install Rust 1.83
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.78"
+          toolchain: "1.83"
 
-      - name: Build with Rust 1.78
+      - name: Build with Rust 1.83
         run: cargo build -p qres_core --no-default-features
 
   summary:
