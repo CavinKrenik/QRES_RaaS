@@ -6,7 +6,7 @@ Quick navigation for QRES v20.0.1 documentation.
 
 | Category | Contents |
 |----------|----------|
-| **[reference/](reference/)** | API_REFERENCE, SPEC, SCOPE |
+| **[reference/](reference/)** | ARCHITECTURE, API_REFERENCE, SPEC, SCOPE |
 | **[status/](status/)** | IMPLEMENTATION_STATUS, TECHNICAL_DEBT |
 | **[verification/](verification/)** | QRES_V20_FINAL_VERIFICATION, MULTIMODAL_* reports |
 | **[security/](security/)** | INVARIANTS, SECURITY_ROADMAP, TEE_MIGRATION_GUIDE, COGNITIVE_MESH_SAFETY |
@@ -17,7 +17,7 @@ Quick navigation for QRES v20.0.1 documentation.
 
 | Category | Contents |
 |----------|----------|
-| **[guides/](guides/)** | CONTRIBUTING, IMAGES, P2P_IMPLEMENTATION |
+| **[guides/](guides/)** | QUICK_START, API_COOKBOOK, CONTRIBUTING, IMAGES, P2P_IMPLEMENTATION |
 | **[research/](research/)** | RELATED_WORK, SENSITIVITY_ANALYSIS, COST_COMPARISON |
 | **[theory/](theory/)** | Formal specifications and proofs |
 | **[adrs/](adrs/)** | Architecture Decision Records |

@@ -1,0 +1,6 @@
+"""
+Marker file indicating this package supports type checking.
+
+This file must be present for type checkers (mypy, pyright) to recognize
+the .pyi stub files in this package.
+"""

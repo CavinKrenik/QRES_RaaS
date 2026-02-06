@@ -3,6 +3,9 @@
 [![v21.0.0](https://img.shields.io/badge/version-21.0.0-blue.svg)](https://github.com/CavinKrenik/QRES_RaaS/releases)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.18193905-blue)](https://doi.org/10.5281/zenodo.18193905)
 [![Paper](https://img.shields.io/badge/Paper-RaaS%3A%20Resource--Aware%20Agentic%20Swarm-green.svg)](https://doi.org/10.5281/zenodo.18474976)
+[![CI](https://github.com/CavinKrenik/QRES_RaaS/workflows/ci/badge.svg)](https://github.com/CavinKrenik/QRES_RaaS/actions)
+[![Coverage](https://codecov.io/gh/CavinKrenik/QRES_RaaS/branch/main/graph/badge.svg)](https://codecov.io/gh/CavinKrenik/QRES_RaaS)
+[![Docs](https://img.shields.io/badge/docs-reference-blue)](docs/INDEX.md)
 [![no_std](https://img.shields.io/badge/no_std-compatible-green.svg)](https://docs.rust-embedded.org/book/intro/no-std.html)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
 [![Rust 2021](https://img.shields.io/badge/rust-2021-orange.svg)](https://www.rust-lang.org/)
@@ -21,6 +24,130 @@ See [CHANGELOG.md](./CHANGELOG.md) for full version history or [docs/INDEX.md](.
 
 **Architectural Scope:**
 Read **[SCOPE.md](./docs/reference/SCOPE.md)** before deployment or evaluation. QRES is intentionally narrow.
+
+---
+
+## Quick Start
+
+Get up and running with QRES in under 5 minutes.
+
+### Prerequisites
+
+<details>
+<summary>📦 Installation Requirements (click to expand)</summary>
+
+**Required:**
+- Rust 1.75+ ([install via rustup](https://rustup.rs/))
+- Cargo (included with Rust)
+
+**Optional (for Python bindings):**
+- Python 3.8+ 
+- pip and maturin (`pip install maturin`)
+
+**Platform Support:** Linux, macOS, Windows (x86_64/ARM64), WASM, ESP32-C6 (no_std)
+
+</details>
+
+### Rust: Compress & Decompress
+
+```rust
+use qres_core::{compress, decompress};
+
+fn main() {
+    let data = b"Hello, QRES! Deterministic compression via model gossip.";
+    let compressed = compress(data).expect("compression failed");
+    let decompressed = decompress(&compressed).expect("decompression failed");
+    
+    assert_eq!(data.as_slice(), decompressed.as_slice());
+    println!("✓ Compression ratio: {:.2}x", data.len() as f32 / compressed.len() as f32);
+}
+```
+
+### Python: Adaptive Byzantine-Tolerant Swarm
+
+```python
+from qres import QRES_API
+
+# Initialize with hybrid mode (adaptive regime detection)
+api = QRES_API(mode="hybrid")
+
+# Compress data with usage hint for optimal predictor selection
+data = b"Sensor readings: 23.5C, 45% humidity, 1013 hPa"
+compressed = api.compress(data, usage_hint="iot")
+decompressed = api.decompress(compressed)
+
+assert data == decompressed
+print(f"✓ Bandwidth saved: {len(data) - len(compressed)} bytes")
+```
+
+**Installation:**
+```bash
+# From source (development)
+cd bindings/python && maturin develop --release
+
+# From PyPI (coming soon)
+# pip install qres-raas
+```
+
+### Try the 100-Node IoT Demo
+
+```bash
+cd examples/virtual_iot_network
+cargo run --release
+# Open browser: http://localhost:8080
+# Watch real-time convergence with Byzantine node injection
+```
+
+**Next Steps:**
+- 📖 [Detailed Tutorial](docs/guides/QUICK_START.md) - 10-minute hands-on walkthrough
+- 🐍 [Python Examples](examples/python/) - TAAF fusion, regime transitions, ZK proofs
+- 🦀 [Rust Examples](examples/rust/) - Custom predictors, no_std integration
+- 📚 [API Reference](docs/reference/API_REFERENCE.md) - Complete Rust/Python/WASM API
+
+---
+
+## System Architecture
+
+**High-Level Component View:**
+
+```mermaid
+graph TD
+    A[Client Applications] -->|API Calls| B[QRES Daemon]
+    B -->|Compress/Decompress| C[qres_core Runtime]
+    
+    C --> D[Adaptive Compression]
+    C --> E[Byzantine Consensus]
+    C --> F[Energy Management]
+    
+    D -->|Model Bytecode| G[P2P Swarm Layer]
+    E -->|Aggregation| G
+    F -->|TWT Scheduling| G
+    
+    G --> H[Viral Gossip Protocol]
+    G --> I[Reputation System]
+    G --> J[ZK Proof Verification]
+    
+    H -->|libp2p| K[Peer Network]
+    I -->|Adaptive Exponent| K
+    J -->|Stochastic Audit| K
+    
+    K -->|Consensus Updates| C
+    
+    style C fill:#e1f5ff,stroke:#0066cc,stroke-width:3px
+    style G fill:#fff4e1,stroke:#ff9900,stroke-width:2px
+    style K fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+```
+
+**Data Flow:** 
+1. Client submits data → 2. Daemon compresses using local model → 3. Core runtime applies fixed-point predictor (Q16.16) → 4. Residual gossiped via P2P → 5. Byzantine-tolerant aggregation updates model → 6. Reputation-weighted consensus converges → 7. New model distributed via viral protocol
+
+**Key Properties:**
+- **Determinism:** Q16.16 fixed-point math ensures bit-perfect consensus across architectures
+- **Bandwidth:** Model gossip (KB) vs data gossip (GB) = 4.98x-31.8x compression
+- **Security:** Coordinate-wise trimmed mean + ZK proofs tolerate 30% Byzantine attackers
+- **Energy:** TWT scheduling + regime-aware silence = 82% radio sleep time in Calm regime
+
+For detailed subsystem diagrams (TAAF fusion pipeline, regime state machine internals, P2P protocol layers), see [docs/reference/ARCHITECTURE.md](docs/reference/ARCHITECTURE.md).
 
 ---
 

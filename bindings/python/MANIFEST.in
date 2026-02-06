@@ -1,0 +1,47 @@
+# MANIFEST.in for qres-raas Python package
+# Controls which files are included in the source distribution (sdist)
+
+# Include essential files
+include README.md
+include ../../LICENSE-MIT
+include ../../LICENSE-APACHE
+include pyproject.toml
+
+# Include Cargo manifest for maturin
+include ../../crates/qres_core/Cargo.toml
+recursive-include ../../crates/qres_core/src *.rs
+
+# Include Python source
+recursive-include qres *.py
+include qres/py.typed
+
+# Exclude compiled artifacts
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude *.so
+global-exclude *.pyd
+global-exclude *.dylib
+global-exclude .DS_Store
+
+# Exclude development files
+exclude .gitignore
+exclude .coveragerc
+exclude pytest.ini
+exclude tox.ini
+exclude Makefile
+
+# Exclude tests (included separately in sdist)
+recursive-exclude tests *
+recursive-exclude ../../tests *
+
+# Exclude build artifacts
+recursive-exclude target *
+recursive-exclude .venv *
+recursive-exclude venv *
+recursive-exclude *.egg-info *
+
+# Exclude documentation build artifacts
+recursive-exclude docs/_build *
+
+# Exclude git metadata
+global-exclude .git*

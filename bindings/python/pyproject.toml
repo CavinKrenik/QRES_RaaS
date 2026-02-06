@@ -3,15 +3,56 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "qres"
+name = "qres-raas"
 version = "21.0.0"
-description = "QRES RaaS: Resource-Aware Agentic Swarm for Python"
+description = "Resource-Aware Decentralized Node Mesh: Byzantine-tolerant compression and P2P gossip for edge computing"
 readme = "README.md"
-authors = [{name = "Cavin Krenik"}]
+authors = [{name = "Cavin Krenik", email = "cavin.krenik@example.com"}]
+license = {text = "MIT OR Apache-2.0"}
 requires-python = ">=3.8"
+keywords = [
+    "compression",
+    "byzantine-fault-tolerance",
+    "edge-computing",
+    "iot",
+    "no-std",
+    "p2p",
+    "gossip-protocol",
+    "federated-learning",
+    "consensus",
+    "deterministic"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: System :: Distributed Computing",
+    "Topic :: System :: Networking",
+]
+
+[project.urls]
+Homepage = "https://github.com/CavinKrenik/QRES_RaaS"
+Repository = "https://github.com/CavinKrenik/QRES_RaaS"
+Documentation = "https://github.com/CavinKrenik/QRES_RaaS/blob/main/docs/INDEX.md"
+"Bug Tracker" = "https://github.com/CavinKrenik/QRES_RaaS/issues"
+Changelog = "https://github.com/CavinKrenik/QRES_RaaS/blob/main/CHANGELOG.md"
+"Research Paper" = "https://doi.org/10.5281/zenodo.18474976"
+
 dependencies = [
-    "numpy",
-    "scipy",
+    "numpy>=1.21.0",
+    "scipy>=1.7.0",
 ]
 
 [project.optional-dependencies]

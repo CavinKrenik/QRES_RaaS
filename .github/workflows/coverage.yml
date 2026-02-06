@@ -1,0 +1,159 @@
+name: Coverage
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust-coverage:
+    name: Rust Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin --locked
+      
+      - name: Generate Rust coverage
+        run: |
+          cargo tarpaulin \
+            --workspace \
+            --all-features \
+            --timeout 300 \
+            --out Xml \
+            --output-dir ./coverage \
+            --exclude-files 'crates/qres_wasm/*' 'target/*' \
+            -- --test-threads=1
+        continue-on-error: true
+      
+      - name: Upload Rust coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/cobertura.xml
+          flags: rust
+          name: rust-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+      
+      - name: Coverage summary
+        run: |
+          if [ -f ./coverage/cobertura.xml ]; then
+            echo "✓ Rust coverage report generated"
+            # Parse coverage percentage (rough estimate)
+            if command -v xmllint &> /dev/null; then
+              COVERAGE=$(xmllint --xpath 'string(//coverage/@line-rate)' ./coverage/cobertura.xml 2>/dev/null || echo "N/A")
+              if [ "$COVERAGE" != "N/A" ]; then
+                COVERAGE_PCT=$(echo "$COVERAGE * 100" | bc -l | xargs printf "%.1f")
+                echo "📊 Rust Coverage: ${COVERAGE_PCT}%"
+                
+                # Warn if below threshold
+                if (( $(echo "$COVERAGE < 0.75" | bc -l) )); then
+                  echo "⚠️ Warning: Coverage below 75% threshold"
+                fi
+              fi
+            fi
+          else
+            echo "⚠️ Coverage report not generated"
+          fi
+
+  python-coverage:
+    name: Python Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install maturin pytest pytest-cov numpy scipy networkx
+      
+      - name: Build Python bindings
+        run: |
+          cd bindings/python
+          maturin develop --release --extras ci
+      
+      - name: Generate Python coverage
+        run: |
+          pytest tests/ \
+            --cov=qres \
+            --cov-report=xml:coverage/python-coverage.xml \
+            --cov-report=term-missing \
+            -v \
+            || true
+        continue-on-error: true
+      
+      - name: Upload Python coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/python-coverage.xml
+          flags: python
+          name: python-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+      
+      - name: Check coverage threshold
+        run: |
+          if [ -f ./coverage/python-coverage.xml ]; then
+            echo "✓ Python coverage report generated"
+            # Extract line coverage rate
+            if command -v xmllint &> /dev/null; then
+              COVERAGE=$(xmllint --xpath 'string(//coverage/@line-rate)' ./coverage/python-coverage.xml 2>/dev/null || echo "0")
+              COVERAGE_PCT=$(echo "$COVERAGE * 100" | bc -l | xargs printf "%.1f" 2>/dev/null || echo "0.0")
+              echo "📊 Python Coverage: ${COVERAGE_PCT}%"
+              
+              # Threshold check (75%)
+              if (( $(echo "$COVERAGE < 0.75" | bc -l 2>/dev/null || echo "1") )); then
+                echo "⚠️ Warning: Coverage below 75% threshold"
+              else
+                echo "✓ Coverage meets 75% threshold"
+              fi
+            fi
+          else
+            echo "⚠️ Python coverage report not generated (tests may have failed)"
+          fi
+
+  combined-report:
+    name: Combined Coverage Report
+    runs-on: ubuntu-latest
+    needs: [rust-coverage, python-coverage]
+    if: always()
+    
+    steps:
+      - name: Summary
+        run: |
+          echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Rust Coverage: ${{ needs.rust-coverage.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Python Coverage: ${{ needs.python-coverage.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View detailed reports on [Codecov](https://codecov.io/gh/${{ github.repository }})" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.rust-coverage.result }}" == "success" ] && [ "${{ needs.python-coverage.result }}" == "success" ]; then
+            echo "✓ All coverage jobs completed"
+          else
+            echo "⚠️ Some coverage jobs failed (non-blocking)"
+          fi

@@ -1,0 +1,131 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for QRES
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please describe your idea below.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? (Optional if enhancement)
+      placeholder: "Currently, QRES cannot handle multimodal streams with >5 modalities..."
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your proposed feature or enhancement
+      placeholder: |
+        Add support for dynamic modality allocation in TAAFPredictor:
+        
+        ```python
+        predictor = TAAFPredictor(max_modalities=10, dynamic=True)
+        predictor.add_modality("temperature", weight=0.8)
+        ```
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component would this affect?
+      options:
+        - qres_core (Rust)
+        - Python bindings
+        - qres_daemon (P2P)
+        - qres_wasm
+        - Documentation
+        - CI/CD
+        - New component
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What alternative solutions or workarounds have you considered?
+      placeholder: "Workaround: Create separate predictors for each modality group, but this increases memory overhead..."
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low (nice to have)
+        - Medium (would improve workflow)
+        - High (blocking current work)
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe your use case or application scenario
+      placeholder: "We're building a smart building system with 15 sensor types per node..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: api-design
+    attributes:
+      label: Proposed API (if applicable)
+      description: Sketch out how the API should look
+      placeholder: |
+        ```rust
+        // Rust API
+        let predictor = TAAFPredictor::builder()
+            .max_modalities(10)
+            .dynamic_allocation(true)
+            .build()?;
+        ```
+        
+        ```python
+        # Python API
+        predictor = TAAFPredictor(max_modalities=10, dynamic=True)
+        ```
+
+  - type: textarea
+    id: breaking-changes
+    attributes:
+      label: Breaking Changes
+      description: Would this introduce breaking changes to existing APIs?
+      placeholder: "No breaking changes - adds new optional parameter with safe default"
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Ideas (Optional)
+      description: If you have ideas about implementation, share them here
+      placeholder: |
+        Could use Vec<Box<dyn Modality>> for dynamic storage...
+        Need to ensure O(1) lookup for performance...
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to help implement this feature
+        - label: I can provide test cases or datasets
+        - label: I can help with documentation
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues for similar requests
+          required: true
+        - label: I have read the project scope (docs/reference/SCOPE.md)
+          required: false

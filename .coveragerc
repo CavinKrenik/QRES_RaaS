@@ -1,0 +1,104 @@
+# Coverage configuration for QRES
+# See: https://coverage.readthedocs.io/en/latest/config.html
+
+[run]
+# Source packages to measure
+source = 
+    bindings/python/qres
+    tests
+
+# Omit specific files/patterns
+omit =
+    tests/generators/*
+    */qres_rust.pyd
+    */qres_rust.so
+    */.venv/*
+    */venv/*
+    */target/*
+    */__pycache__/*
+    */setup.py
+
+# Branch coverage (more detailed than line coverage)
+branch = True
+
+# Parallel execution (if using pytest-xdist)
+parallel = False
+
+# Data file location
+data_file = .coverage
+
+# Measure subprocess coverage (for daemon tests)
+concurrency = thread
+
+[report]
+# Minimum acceptable coverage percentage
+fail_under = 75
+
+# Show missing line numbers in report
+show_missing = True
+
+# Skip empty files
+skip_empty = True
+
+# Sort by coverage percentage
+sort = Cover
+
+# Precision for coverage percentage
+precision = 2
+
+# Exclude lines from coverage
+exclude_lines =
+    # Standard pragma
+    pragma: no cover
+    
+    # Debug-only code
+    def __repr__
+    if self\.debug
+    if settings\.DEBUG
+    
+    # Abstract methods
+    @abstract
+    raise AssertionError
+    raise NotImplementedError
+    
+    # Type checking
+    if TYPE_CHECKING:
+    if typing\.TYPE_CHECKING:
+    
+    # Non-runnable code
+    if __name__ == .__main__.:
+    if __name__ == "__main__":
+    
+    # Ellipsis (stubs)
+    \.\.\.$
+    pass
+    
+    # Defensive programming
+    except ImportError:
+    except ModuleNotFoundError:
+
+# Ignore missing source files (for optional dependencies)
+ignore_errors = False
+
+[html]
+# HTML report directory
+directory = coverage_html
+
+# Title for HTML report
+title = QRES Python Coverage Report
+
+[xml]
+# XML report for CI/CD (Codecov, etc.)
+output = coverage.xml
+
+[json]
+# JSON report for advanced analysis
+output = coverage.json
+pretty_print = True
+
+[paths]
+# Map source paths (for different environments)
+source =
+    bindings/python/qres
+    /home/runner/work/QRES_RaaS/QRES_RaaS/bindings/python/qres
+    C:\Dev\RaaS\bindings\python\qres
