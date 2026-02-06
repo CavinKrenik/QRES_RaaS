@@ -62,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheel-${{ matrix.os }}-py${{ matrix.python-version }}
-          path: bindings/python/target/wheels/*.whl
+          path: target/wheels/*.whl
           retention-days: 7
 
   build-sdist:
@@ -99,7 +99,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sdist
-          path: bindings/python/target/wheels/*.tar.gz
+          path: target/wheels/*.tar.gz
           retention-days: 7
 
   test-wheels:
