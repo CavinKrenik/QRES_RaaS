@@ -42,8 +42,8 @@ Currently operates in **simulation mode** using `MockRadio` for testing without 
 │  │ TWT Agreement Negotiation      ││                    │
 │  │ - Service Period (SP)          ││                    │
 │  │ - Wake Interval                ◄┘                    │
-│  │ - TWT Flow Identifier           │                    │
-│  └─────────────────────────────────┘                    │
+│  │ - TWT Flow Identifier          │                     │
+│  └────────────────────────────────┘                     │
 ├─────────────────────────────────────────────────────────┤
 │  Physical Layer                                         │
 │  ┌─────────────────────────────────┐                    │
