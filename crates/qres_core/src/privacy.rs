@@ -103,8 +103,14 @@ impl DifferentialPrivacy {
             // Sensitivity is the clipping threshold (L2 sensitivity)
             let sensitivity = self.clipping_threshold;
 
-            // Create measurement
-            let meas = make_gaussian(domain, metric, sensitivity, self.epsilon, Some(self.delta))
+            // OpenDP 0.14 API: scale is the standard deviation
+            // For (epsilon, delta)-DP Gaussian: scale = sensitivity * sqrt(2 * ln(1.25/delta)) / epsilon
+            let c = 2.0 * ln(1.25 / self.delta);
+            let scale = sensitivity * sqrt(c) / self.epsilon;
+
+            // Create measurement: make_gaussian(domain, metric, scale, k)
+            // k = None means continuous noise (default)
+            let meas = make_gaussian(domain, metric, scale, None)
                 .map_err(|e: opendp::error::Error| e.to_string())?;
 
             // Invoke measurement

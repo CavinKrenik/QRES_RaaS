@@ -1,4 +1,5 @@
 #[cfg(feature = "gpu")]
+#[allow(unused_imports)]
 use wgpu::util::DeviceExt;
 
 /// GPU Compute Engine for Neural Mixing

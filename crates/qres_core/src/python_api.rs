@@ -23,7 +23,7 @@ fn encode_bytes(
         .map_err(|e| PyErr::new::<PyIOError, _>(e.to_string()))?;
 
     buffer.truncate(compressed_len);
-    Ok(PyBytes::new_bound(py, &buffer).unbind())
+    Ok(PyBytes::new(py, &buffer).unbind())
 }
 
 #[pyfunction]
@@ -36,7 +36,7 @@ fn decode_bytes(
 ) -> PyResult<Py<PyBytes>> {
     let decompressed = decompress_chunk(data, predictor_id, weights)
         .map_err(|e| PyErr::new::<PyIOError, _>(e.to_string()))?;
-    Ok(PyBytes::new_bound(py, &decompressed).unbind())
+    Ok(PyBytes::new(py, &decompressed).unbind())
 }
 
 #[pyfunction]

@@ -367,7 +367,8 @@ mod variance_monitor_tests {
             "Before: exponent={}, mantissas={:?}",
             bfp.exponent, bfp.mantissas
         );
-        let _before_values = bfp.to_vec_f32();
+        #[allow(unused_variables)]
+        let before_values = bfp.to_vec_f32();
         #[cfg(feature = "std")]
         println!("Before values: {:?}", before_values);
 
